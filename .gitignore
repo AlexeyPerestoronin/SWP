@@ -1,0 +1,15 @@
+# VsCode
+.venv
+
+# SolidWorks
+~$*.SLDPRT
+~$*.SLDASM
+
+# Video
+*.avi
+
+# GeeCode
+*.gx
+
+# Personal
+note.md
