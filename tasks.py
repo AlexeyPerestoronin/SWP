@@ -8,11 +8,7 @@ from pyswx.api.swconst.enumerations import SWSaveAsOptionsE
 from pyswx.api.swconst.enumerations import SWSaveAsVersionE
 
 
-@invoke.task(
-    help = {
-        "path": "path to SW-body which bodies should be saved as *.step"
-    }
-)
+@invoke.task(help={"path": "path to SW-body which bodies should be saved as *.step"})
 def step_export(ctx, path: str = None):
     """
     Mass exporting of SW-solid-bodies in step-files

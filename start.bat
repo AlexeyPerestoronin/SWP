@@ -1,5 +1,6 @@
 @echo off
-REM Create virtual environment for Python if not created
+
+@REM Create virtual environment for Python if not created
 if not exist .venv (
     echo Creating virtual environment...
     python -m venv .venv
