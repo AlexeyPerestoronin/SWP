@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/.venv/Scripts/invoke.exe",
             "console": "integratedTerminal",
-            "args": ["step-export", "--path", "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/ДЕТАЛИ.SLDPRT"]
+            "args": ["step-export", "--path", "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/Крючок-Настенный-Универсальный.SLDPRT"]
         }
     ]
 }
