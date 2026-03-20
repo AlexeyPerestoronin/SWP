@@ -12,5 +12,8 @@ call .venv\Scripts\activate.bat
 REM Install requirements
 pip install -r requirements.txt
 
+REM Install PySWX from local source
+pip install -e ../../OthersLife/pyswx
+
 REM List invoke commands
 invoke --list

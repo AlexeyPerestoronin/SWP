@@ -8,10 +8,10 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/.venv/Scripts/invoke.exe",
+            "program": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
             "cwd": "${workspaceFolder}/Fuzz",
             "args": [
-                "step-export",
+                "export.step",
                 "--path",
                 "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/Крючок-Настенный-Универсальный.SLDPRT"
             ],

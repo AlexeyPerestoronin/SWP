@@ -19,3 +19,6 @@ def longest_common_substring(strings: List[str]) -> str:
         return a[match.a:match.a + match.size]
 
     return functools.reduce(lcs_pair, strings)
+
+
+from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR

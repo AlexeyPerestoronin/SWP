@@ -1,10 +1,15 @@
 {
+    "yapf.args": [
+        "--style ${workspaceFolder}/Fuzz/.style.yapf"
+    ],
     "cSpell.words": [
+        "colorama",
         "FILELOADWARNING",
         "pyswx",
         "pythoncom",
         "sldworks",
         "swconst",
-        "venv"
+        "venv",
+        "yapf"
     ]
 }

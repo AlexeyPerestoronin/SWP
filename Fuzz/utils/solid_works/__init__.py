@@ -31,7 +31,7 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[Tuple
         names = [body.name for body in same_bodies]
         common_name = utils.longest_common_substring(names).strip()
         if show_log:
-            print(f"next {len(names)} bodies {names} are same and their common name is '{common_name}'")
+            utils.INFO.log_line(f"next {len(names)} bodies {names} are same and their common name is '{common_name}'")
         return (common_name, len(same_bodies), same_bodies[0])
 
     return [prepare_result(same_bodies) for same_bodies in unique_bodies]
