@@ -4,14 +4,18 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/Scripts/invoke.exe",
-            "console": "integratedTerminal",
-            "args": ["step-export", "--path", "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/Крючок-Настенный-Универсальный.SLDPRT"]
+            "cwd": "${workspaceFolder}/Fuzz",
+            "args": [
+                "step-export",
+                "--path",
+                "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/Крючок-Настенный-Универсальный.SLDPRT"
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }
