@@ -54,7 +54,7 @@ def com_test(com_object):
         "path": "path to SW-part-project which bodies should be saved as *.step",
         "execute": "if True unique solid-body will be saved in corresponded step-file, otherwise only log (be default: False)",
     })
-def step_export(ctx, path: str = None, execute: bool = False):
+def step_export(ctx, path: str = None, only_unique: bool = True, execute: bool = False):
     """
     Mass exporting of SW-solid-bodies in unique step-files.
     Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
@@ -77,7 +77,16 @@ def step_export(ctx, path: str = None, execute: bool = False):
     assert not error
 
     root_component = part_model.configuration_manager.active_configuration.get_root_component3(True)
-    for body in root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY):
+    bodies = root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
+    if only_unique:
+        unique_body = {}
+        for (i, body1) in enumerate(bodies, 0):
+            unique_body[i] = [body1]
+            for (j, body2) in enumerate(bodies, i + 1):
+                if body1.get_coincidence_transform_2(body2)[0]:
+                    unique_body[i].append(body2)
+
+    for body in bodies:
         step_path = part_model.get_path_name()
         step_path = step_path.with_name(f"{step_path.stem} {body.name}").with_suffix(".step")
         print(f"step path for unique solid-body = {step_path}")
