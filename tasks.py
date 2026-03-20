@@ -79,12 +79,20 @@ def step_export(ctx, path: str = None, only_unique: bool = True, execute: bool =
     root_component = part_model.configuration_manager.active_configuration.get_root_component3(True)
     bodies = root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
     if only_unique:
-        unique_body = {}
-        for (i, body1) in enumerate(bodies, 0):
-            unique_body[i] = [body1]
-            for (j, body2) in enumerate(bodies, i + 1):
-                if body1.get_coincidence_transform_2(body2)[0]:
-                    unique_body[i].append(body2)
+        unique_bodies = []
+        remain_bodies = []
+        while len(bodies) != 0:
+            remain_bodies = []
+            body1 = bodies[0]
+            unique_bodies.append([body1])
+            for body2 in bodies[1:]:
+                (result, _) = body1.get_coincidence_transform_2(body2)
+                if result:
+                    unique_bodies[-1].append(body2)
+                else:
+                    remain_bodies.append(body2)
+            bodies = remain_bodies
+        bodies = unique_bodies
 
     for body in bodies:
         step_path = part_model.get_path_name()
