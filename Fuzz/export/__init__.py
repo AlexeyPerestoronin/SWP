@@ -10,7 +10,6 @@ from pyswx.api.swconst.enumerations import SWBodyTypeE
 import utils.solid_works
 
 
-
 @invoke.task(
     help={
         "path": "path to SW-part-project which bodies should be saved as *.step",
@@ -45,15 +44,20 @@ def step(ctx, path: str = None, execute: bool = False):
     for (name, quantity, body) in unique_bodies:
         step_path = part_model.get_path_name()
         step_path = step_path.with_name(f"{step_path.stem} {name} [{quantity}]").with_suffix(".step")
-        print(f"step path for unique solid-body = {step_path}")
         if execute:
-            part_model.clear_selection2(True)
-            assert body.select_2(False)
-            part_model.extension.save_as_3(name=step_path,
-                                           version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
-                                           options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
-                                           export_data=None,
-                                           advanced_save_as_options=None)
+            try:
+                part_model.clear_selection2(True)
+                assert body.select_2(False)
+                part_model.extension.save_as_3(name=step_path,
+                                               version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
+                                               options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
+                                               export_data=None,
+                                               advanced_save_as_options=None)
+                utils.SUCCESS.log_line(f"step file created: {step_path}")
+            except error:
+                utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
+        else:
+            utils.INFO.log_line(f"defined path for unique solid-body: {step_path}")
 
     SolidWorksPySWX.close_doc(part_model.get_path_name())
 

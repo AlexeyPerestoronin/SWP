@@ -36,7 +36,6 @@ class Logger:
 
 
 SUCCESS = Logger(Color.GREEN)
-STATUS = Logger(Color.BLUE)
-INFO = Logger(Color.WHITE)
+INFO = Logger(Color.BLUE)
 WARNING = Logger(Color.YELLOW)
 ERROR = Logger(Color.RED)

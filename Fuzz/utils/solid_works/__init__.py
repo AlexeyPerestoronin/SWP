@@ -10,6 +10,10 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[Tuple
     """
     Groups a list of SolidWorks solid bodies (IBody2) into unique sets based on geometric coincidence.
 
+    Args:
+        bodies (List[IBody2]): list of SW bodies for selection of unique
+        show_log (bool): if True - the working log will be printed in the consol
+
     Returns:
         List[Tuple[str, int, IBody2]]: List of tuples (common_name, quantity, representative_body) for each unique group.
     """

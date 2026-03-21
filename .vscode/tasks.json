@@ -1,0 +1,24 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "YAPF",
+            "type": "shell",
+            "group": "none",
+            "command": "${workspaceFolder}/Fuzz/.venv/Scripts/yapf.exe",
+            "args": [
+                "--style", "${workspaceFolder}/Fuzz/.style.yapf",
+                "--recursive",
+                "--in-place",
+                "--parallel",
+                "--exclude", "**/.venv/**",
+                "${workspaceFolder}/Fuzz" 
+            ],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
