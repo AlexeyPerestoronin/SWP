@@ -31,7 +31,6 @@ def step(ctx, path: str = None, execute: bool = False):
 
     model, warning, error = sw.open_doc7(specification=part_open_spec)
     assert not error
-    assert not warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN
     assert model
 
     model, error = sw.activate_doc_3(name=model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
@@ -66,7 +65,8 @@ def step(ctx, path: str = None, execute: bool = False):
         else:
             utils.INFO.log_line(f"defined path for unique solid-body: {model_path}")
 
-    sw.close_doc(model.get_path_name())
+    if not (warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN):
+        sw.close_doc(model.get_path_name())
 
 
 collection = invoke.Collection()

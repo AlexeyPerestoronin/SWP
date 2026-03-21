@@ -67,7 +67,7 @@ class SWUtils:
                 feature = feature.get_next_feature()
             self.model_folders_cache[cache_key] = cached_folders
         return cached_folders
-    
+
     def get_bodies_in_folder(self, folder: IBodyFolder, use_cache: bool = True):
         """
         TODO: need provide verbose comment
