@@ -16,6 +16,7 @@ class SWUtils:
 
     def __init__(self):
         self.model_folders_cache: Dict[str, List[IBodyFolder]] = {}
+        self.folder_bodies_cache: Dict[str, List[IBody2]] = {}
 
     def get_unique_bodies(self, bodies: List[IBody2], show_log: bool = True) -> List[Tuple[str, int, IBody2]]:
         """
@@ -51,28 +52,42 @@ class SWUtils:
 
         return [prepare_result(same_bodies) for same_bodies in unique_bodies]
 
-    def get_body_folders(self, model: IModelDoc2, use_cache: bool = True):
+    def get_folders_in_model(self, model: IModelDoc2, use_cache: bool = True):
         """
         TODO: need provide verbose comment
         """
         cache_key = model.get_path_name()
-        cached_sw_folders = self.model_folders_cache.get(cache_key, None)
-        if not cached_sw_folders or use_cache == False:
-            cached_sw_folders = []
+        cached_folders = self.model_folders_cache.get(cache_key, None)
+        if not cached_folders or use_cache == False:
+            cached_folders = []
             feature = model.first_feature
             while feature:
                 if feature.type_name in ['SolidBodyFolder', 'SubAtomFolder']:
-                    cached_sw_folders.append(IBodyFolder(feature.get_specific_feature_2()))
+                    cached_folders.append(IBodyFolder(feature.get_specific_feature_2()))
                 feature = feature.get_next_feature()
-            self.model_folders_cache[cache_key] = cached_sw_folders
-        return cached_sw_folders
+            self.model_folders_cache[cache_key] = cached_folders
+        return cached_folders
+    
+    def get_bodies_in_folder(self, folder: IBodyFolder, use_cache: bool = True):
+        """
+        TODO: need provide verbose comment
+        """
+        cache_key = folder.get_feature().name
+        cached_bodies = self.folder_bodies_cache.get(cache_key, None)
+        if not cached_bodies or use_cache == False:
+            cached_bodies = []
+            for body_in_folder in folder.get_bodies():
+                cached_bodies.append(body_in_folder)
+            self.folder_bodies_cache[cache_key] = cached_bodies
+        return cached_bodies
 
     def detect_folder_for_body(self, model: IModelDoc2, body: IBody2, use_cache: bool = True) -> str:
         """
         TODO: need provide verbose comment
         """
-        for folder in self.get_body_folders(model, use_cache):
-            for body_in_folder in folder.get_bodies():
+        pass
+        for folder in self.get_folders_in_model(model, use_cache):
+            for body_in_folder in self.get_bodies_in_folder(folder, use_cache):
                 if body_in_folder.name == body.name:
                     if folder.type == SWBodyFolderFeatureTypE.SW_SOLID_BODY_FOLDER:
                         return None
