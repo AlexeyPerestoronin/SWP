@@ -12,8 +12,9 @@
             "cwd": "${workspaceFolder}/Fuzz",
             "args": [
                 "export.step",
+                // "--execute",
                 "--path",
-                "${workspaceFolder}/Projects/КВАРТИРА/Крючок настенный универсальный/Крючок-Настенный-Универсальный.SLDPRT"
+                "C:/MyLife/SWP/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT"
             ],
             "console": "integratedTerminal"
         }

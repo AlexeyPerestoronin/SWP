@@ -20,46 +20,52 @@ def step(ctx, path: str = None, execute: bool = False):
     Mass exporting of SW-solid-bodies in unique step-files.
     Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
     """
-    SolidWorksPySWX = PySWX(version=2025).application
-    assert SolidWorksPySWX
+    sw = PySWX(version=2025).application
+    assert sw
 
-    part_open_spec = SolidWorksPySWX.get_open_doc_spec(file_name=path)
+    part_open_spec = sw.get_open_doc_spec(file_name=path)
     part_open_spec.document_type = SWDocumentTypesE.SW_DOC_PART
     part_open_spec.use_light_weight_default = True
     part_open_spec.light_weight = True
     part_open_spec.silent = True
 
-    part_model, warning, error = SolidWorksPySWX.open_doc7(specification=part_open_spec)
+    model, warning, error = sw.open_doc7(specification=part_open_spec)
     assert not error
     assert not warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN
-    assert part_model
+    assert model
 
-    part_model, error = SolidWorksPySWX.activate_doc_3(name=part_model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
-    assert part_model
+
+    model, error = sw.activate_doc_3(name=model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
+    assert model
     assert not error
 
-    root_component = part_model.configuration_manager.active_configuration.get_root_component3(True)
-    unique_bodies = utils.solid_works.get_unique_bodies(root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
+    component = model.configuration_manager.active_configuration.get_root_component3(True)
+    unique_bodies = utils.solid_works.get_unique_bodies(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
 
     for (name, quantity, body) in unique_bodies:
-        step_path = part_model.get_path_name()
-        step_path = step_path.with_name(f"{step_path.stem} {name} [{quantity}]").with_suffix(".step")
+        model_path = model.get_path_name()
+        body_folder_name = utils.solid_works.detect_folder_for_body(model, body)
+        if body_folder_name:
+            model_path = model_path.with_name(f"{model_path.stem} {body_folder_name} {name} [{quantity}]").with_suffix(".step")
+        else:
+            model_path = model_path.with_name(f"{model_path.stem} {name} [{quantity}]").with_suffix(".step")
+
         if execute:
             try:
-                part_model.clear_selection2(True)
+                model.clear_selection2(True)
                 assert body.select_2(False)
-                part_model.extension.save_as_3(name=step_path,
-                                               version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
-                                               options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
-                                               export_data=None,
-                                               advanced_save_as_options=None)
-                utils.SUCCESS.log_line(f"step file created: {step_path}")
+                model.extension.save_as_3(name=model_path,
+                                          version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
+                                          options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
+                                          export_data=None,
+                                          advanced_save_as_options=None)
+                utils.SUCCESS.log_line(f"step file created: {model_path}")
             except error:
-                utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
+                utils.ERROR.log_line(f"cannot create step file '{model_path}': {error}")
         else:
-            utils.INFO.log_line(f"defined path for unique solid-body: {step_path}")
+            utils.INFO.log_line(f"defined path for unique solid-body: {model_path}")
 
-    SolidWorksPySWX.close_doc(part_model.get_path_name())
+    sw.close_doc(model.get_path_name())
 
 
 collection = invoke.Collection()

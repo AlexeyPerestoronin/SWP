@@ -1,7 +1,10 @@
 from typing import List
 from typing import Tuple
 
+from pyswx.api.sldworks.interfaces import IModelDoc2
+from pyswx.api.sldworks.interfaces import IComponent2
 from pyswx.api.sldworks.interfaces import IBody2
+from pyswx.api.sldworks.interfaces.i_body_folder import IBodyFolder
 
 import utils
 
@@ -39,3 +42,19 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[Tuple
         return (common_name, len(same_bodies), same_bodies[0])
 
     return [prepare_result(same_bodies) for same_bodies in unique_bodies]
+
+
+def detect_folder_for_body(model: IModelDoc2, body: IBody2) -> str:
+    feature = model.first_feature
+    while feature:
+        folder = None
+        if feature.type_name == 'SolidBodyFolder':
+            for folder_in_body in IBodyFolder(feature.get_specific_feature_2()).get_bodies():
+                if folder_in_body.name == body.name:
+                    return None
+        if feature.type_name == 'SubAtomFolder':
+            for folder_in_body in IBodyFolder(feature.get_specific_feature_2()).get_bodies():
+                if folder_in_body.name == body.name:
+                    return feature.name
+        feature = feature.get_next_feature()
+    raise Exception(f"cannot detect folder for the body {body.name}")
