@@ -34,17 +34,18 @@ def step(ctx, path: str = None, execute: bool = False):
     assert not warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN
     assert model
 
-
     model, error = sw.activate_doc_3(name=model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
     assert model
     assert not error
 
+    sw_utils = utils.solid_works.SWUtils()
+
     component = model.configuration_manager.active_configuration.get_root_component3(True)
-    unique_bodies = utils.solid_works.get_unique_bodies(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
+    unique_bodies = sw_utils.get_unique_bodies(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
 
     for (name, quantity, body) in unique_bodies:
         model_path = model.get_path_name()
-        body_folder_name = utils.solid_works.detect_folder_for_body(model, body)
+        body_folder_name = sw_utils.detect_folder_for_body(model, body)
         if body_folder_name:
             model_path = model_path.with_name(f"{model_path.stem} {body_folder_name} {name} [{quantity}]").with_suffix(".step")
         else:
