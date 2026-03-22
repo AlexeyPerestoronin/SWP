@@ -1,13 +1,7 @@
 import invoke
 
-from pyswx import PySWX
-from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWFileLoadWarningE
-from pyswx.api.swconst.enumerations import SWRebuildOnActivationOptionsE
-from pyswx.api.swconst.enumerations import SWSaveAsOptionsE
-from pyswx.api.swconst.enumerations import SWSaveAsVersionE
-from pyswx.api.swconst.enumerations import SWBodyTypeE
-
-import utils.solid_works
+from utils.solid_works import SWUtils
+from utils import ERROR, SUCCESS, INFO
 
 
 @invoke.task(
@@ -20,6 +14,13 @@ def step(ctx, path: str = None, execute: bool = False):
     Mass exporting of SW-solid-bodies in unique step-files.
     Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
     """
+    from pyswx import PySWX
+    from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWFileLoadWarningE
+    from pyswx.api.swconst.enumerations import SWRebuildOnActivationOptionsE
+    from pyswx.api.swconst.enumerations import SWSaveAsOptionsE
+    from pyswx.api.swconst.enumerations import SWSaveAsVersionE
+    from pyswx.api.swconst.enumerations import SWBodyTypeE
+
     sw = PySWX(version=2025).application
     assert sw
 
@@ -37,33 +38,39 @@ def step(ctx, path: str = None, execute: bool = False):
     assert model
     assert not error
 
-    sw_utils = utils.solid_works.SWUtils()
+    sw_utils = SWUtils()
 
     component = model.configuration_manager.active_configuration.get_root_component3(True)
     unique_bodies = sw_utils.get_unique_bodies(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
 
+    step_paths = []
     for (name, quantity, body) in unique_bodies:
         model_path = model.get_path_name()
         body_folder_name = sw_utils.detect_folder_for_body(model, body)
         if body_folder_name:
-            model_path = model_path.with_name(f"{model_path.stem} {body_folder_name} {name} [{quantity}]").with_suffix(".step")
+            step_path = model_path.with_name(f"{model_path.stem} {body_folder_name} {name} [{quantity}]").with_suffix(".step")
         else:
-            model_path = model_path.with_name(f"{model_path.stem} {name} [{quantity}]").with_suffix(".step")
+            step_path = model_path.with_name(f"{model_path.stem} {name} [{quantity}]").with_suffix(".step")
+
+        if step_path in step_paths:
+            raise ERROR.log_line(f"cannot create step file '{step_path}' because it already reserved!")
+
+        step_paths.append(step_path)
 
         if execute:
             try:
                 model.clear_selection2(True)
                 assert body.select_2(False)
-                model.extension.save_as_3(name=model_path,
+                model.extension.save_as_3(name=step_path,
                                           version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
                                           options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
                                           export_data=None,
                                           advanced_save_as_options=None)
-                utils.SUCCESS.log_line(f"step file created: {model_path}")
+                SUCCESS.log_line(f"step file created: {step_path}")
             except error:
-                utils.ERROR.log_line(f"cannot create step file '{model_path}': {error}")
+                ERROR.log_line(f"cannot create step file '{step_path}': {error}")
         else:
-            utils.INFO.log_line(f"defined path for unique solid-body: {model_path}")
+            INFO.log_line(f"defined path for unique solid-body: {step_path}")
 
     if not (warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN):
         sw.close_doc(model.get_path_name())

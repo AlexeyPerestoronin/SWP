@@ -3,7 +3,6 @@ from typing import Tuple
 from typing import Dict
 
 from pyswx.api.sldworks.interfaces import IModelDoc2
-from pyswx.api.sldworks.interfaces import IComponent2
 from pyswx.api.sldworks.interfaces import IBody2
 from pyswx.api.sldworks.interfaces import IBodyFolder
 
