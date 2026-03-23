@@ -1,7 +1,6 @@
 import invoke
 
-from utils.solid_works import SWUtils
-from utils import ERROR, SUCCESS, INFO
+from utils import *
 
 
 @invoke.task(

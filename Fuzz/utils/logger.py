@@ -25,7 +25,7 @@ class Logger:
     def __del__(self):
         print(colorama.Style.RESET_ALL)
 
-    def log_line(self, message: str):
+    def log_line(self, message: str) -> 'Logger':
         print(self.__color.value, end='')
         if message[-1] == '\n':
             print(message, end='')
