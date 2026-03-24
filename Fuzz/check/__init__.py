@@ -23,11 +23,11 @@ def model_naming(ctx, path: str = None):
     part_open_spec.light_weight = True
     part_open_spec.silent = True
 
-    model, warning, error = sw.open_doc7(specification=part_open_spec)
+    root_model, warning, error = sw.open_doc7(specification=part_open_spec)
     assert not error
-    assert model
+    assert root_model
 
-    model_name = model.get_path_name().stem
+    model_name = root_model.get_path_name().stem
 
     model_name_pattern = r'[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w)*'
     if not bool(re.match(model_name_pattern, model_name)):
@@ -36,7 +36,7 @@ def model_naming(ctx, path: str = None):
     SUCCESS.log_line("model name is right")
 
     if not (warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN):
-        sw.close_doc(model.get_path_name())
+        sw.close_doc(root_model.get_path_name())
 
 
 @invoke.task(help={
@@ -54,15 +54,15 @@ def body_naming(ctx, path: str = None):
     part_open_spec.light_weight = True
     part_open_spec.silent = True
 
-    model, warning, error = sw.open_doc7(specification=part_open_spec)
+    root_model, warning, error = sw.open_doc7(specification=part_open_spec)
     assert not error
-    assert model
+    assert root_model
 
-    model, error = sw.activate_doc_3(name=model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
-    assert model
+    root_model, error = sw.activate_doc_3(name=root_model.get_path_name(), use_user_preferences=False, option=SWRebuildOnActivationOptionsE.SW_REBUILD_ACTIVE_DOC)
+    assert root_model
     assert not error
 
-    component = model.configuration_manager.active_configuration.get_root_component3(True)
+    component = root_model.configuration_manager.active_configuration.get_root_component3(True)
     bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
 
     for body in bodies:
@@ -72,7 +72,7 @@ def body_naming(ctx, path: str = None):
     SUCCESS.log_line("all bodies' names is right!")
 
     if not (warning or warning == SWFileLoadWarningE.SW_FILELOADWARNING_ALREADY_OPEN):
-        sw.close_doc(model.get_path_name())
+        sw.close_doc(root_model.get_path_name())
 
 
 collection = invoke.Collection()
