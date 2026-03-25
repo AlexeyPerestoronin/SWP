@@ -8,9 +8,13 @@ from ..logger import STATUS
 
 class OpenDocument:
     """
-    TODO: provide some comment...
-    """
+    Context manager-like class for opening/connecting to SolidWorks document (SLDPRT/SLDASM).
 
+    Supports PySWX 2025, opens silently in lightweight mode.
+    Auto-closes if newly opened.
+    Provides sw (ISldWorks) and root_model (IModelDoc2) properties.
+    Logs open/connect and close/disconnect actions.
+    """
     def __init__(self, path: pathlib.Path):
         self.__path = path
         assert self.__path
@@ -47,7 +51,9 @@ class OpenDocument:
 
 def open_document(path: pathlib.Path) -> OpenDocument:
     """
-    TODO: provide some comment...
+    Cached factory for OpenDocument.
+
+    Uses static cache keyed by path str for singleton behavior.
     """
     assert path
 

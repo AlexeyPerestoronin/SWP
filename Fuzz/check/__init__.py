@@ -8,10 +8,11 @@ import utils
 @invoke.task(help={
     "path": "path to SW-project models in which should be checked",
 })
-def model_naming(ctx, path: str = None):
+def project_naming(ctx, path: str = None):
     """
-    TODO: need to provide some comment...
+    Check project name via its filename for a SW project.
     """
+
     root_model = utils.open_document(path).root_model
 
     model_name = root_model.get_path_name().stem
@@ -27,8 +28,9 @@ def model_naming(ctx, path: str = None):
 })
 def body_naming(ctx, path: str = None):
     """
-    TODO: need to provide some comment...
+    Validate names of all solid bodies in a SW project.
     """
+
     root_model = utils.open_document(path).root_model
     component = root_model.configuration_manager.active_configuration.get_root_component3(True)
     bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
@@ -45,8 +47,9 @@ def body_naming(ctx, path: str = None):
 })
 def folder_naming(ctx, path: str = None):
     """
-    TODO: need to provide some comment...
+    Check body folder names in a SW project.
     """
+
     utils.open_document(path)
     folder_name_pattern = r'\w+(-\w+)*'
     for folder in utils.ModelUtils().get_folders_in_model(utils.open_document(path).root_model):
@@ -62,15 +65,16 @@ def folder_naming(ctx, path: str = None):
 })
 def all(ctx, path: str = None):
     """
-    TODO: need to provide some comment...
+    Run all naming checks for a SW project
     """
-    model_naming(ctx, path)
+
+    project_naming(ctx, path)
     body_naming(ctx, path)
     folder_naming(ctx, path)
 
 
 collection = invoke.Collection()
-collection.add_task(model_naming, name="model-naming")
+collection.add_task(project_naming, name="project-naming")
 collection.add_task(body_naming, name="body-naming")
 collection.add_task(folder_naming, name="folder-naming")
 collection.add_task(all, name="all")

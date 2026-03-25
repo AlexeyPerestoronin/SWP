@@ -28,7 +28,6 @@ class ModelUtils:
         Returns:
             List[Tuple[str, int, IBody2]]: List of tuples (common_name, quantity, representative_body) for each unique group.
         """
-
         unique_bodies = []
         while len(bodies) != 0:
             remain_bodies = []
@@ -53,7 +52,16 @@ class ModelUtils:
 
     def get_folders_in_model(self, model: IModelDoc2, use_cache: bool = True) -> List[IBodyFolder]:
         """
-        TODO: need provide verbose comment
+        Get all body folders in the model (SolidBodyFolder and SubAtomFolder).
+
+        Args:
+            model: IModelDoc2 instance
+            use_cache: whether to use or refresh cache (default True)
+
+        Returns:
+            List of IBodyFolder.
+
+        Cached by model path.
         """
         cache_key = model.get_path_name()
         cached_folders = self.model_folders_cache.get(cache_key, None)
@@ -69,7 +77,16 @@ class ModelUtils:
 
     def get_bodies_in_folder(self, folder: IBodyFolder, use_cache: bool = True) -> List[IBody2]:
         """
-        TODO: need provide verbose comment
+        Get all bodies in a specific body folder.
+
+        Args:
+            folder: IBodyFolder instance
+            use_cache: whether to use or refresh cache (default True)
+
+        Returns:
+            List of IBody2 bodies.
+
+        Cached by folder name.
         """
         cache_key = folder.get_feature().name
         cached_bodies = self.folder_bodies_cache.get(cache_key, None)
@@ -82,7 +99,18 @@ class ModelUtils:
 
     def detect_folder_for_body(self, model: IModelDoc2, body: IBody2, use_cache: bool = True) -> str:
         """
-        TODO: need provide verbose comment
+        Detect the containing body folder for a given body.
+
+        Args:
+            model: The model containing the body
+            body: IBody2 instance
+            use_cache: Use cached folders/bodies (default True)
+
+        Returns:
+            str: Folder name if subfolder, None if solid body folder.
+
+        Raises:
+            Exception: Body not found in any folder.
         """
         pass
         for folder in self.get_folders_in_model(model, use_cache):
