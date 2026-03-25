@@ -3,7 +3,7 @@ import re, difflib, functools
 from typing import List, Tuple, Optional
 
 from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
-from .solid_works import SWUtils
+from .solid_works import ModelUtils, OpenDocument, open_document
 
 
 def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
@@ -59,7 +59,9 @@ __all__ = [
     'WARNING',
     'ERROR',
     # .solid_works
-    'SWUtils',
+    'ModelUtils',
+    'OpenDocument',
+    'open_document',
     # local utils functions
     'parse_and_check_body_name',
     'longest_common_substring',

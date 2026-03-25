@@ -37,7 +37,7 @@ def step(ctx, path: str = None, execute: bool = False):
     assert model
     assert not error
 
-    sw_utils = SWUtils()
+    sw_utils = ModelUtils()
 
     component = model.configuration_manager.active_configuration.get_root_component3(True)
     unique_bodies = sw_utils.get_unique_bodies(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
