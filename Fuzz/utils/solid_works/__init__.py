@@ -51,7 +51,7 @@ class SWUtils:
 
         return [prepare_result(same_bodies) for same_bodies in unique_bodies]
 
-    def get_folders_in_model(self, model: IModelDoc2, use_cache: bool = True):
+    def get_folders_in_model(self, model: IModelDoc2, use_cache: bool = True) -> List[IBodyFolder]:
         """
         TODO: need provide verbose comment
         """
@@ -67,7 +67,7 @@ class SWUtils:
             self.model_folders_cache[cache_key] = cached_folders
         return cached_folders
 
-    def get_bodies_in_folder(self, folder: IBodyFolder, use_cache: bool = True):
+    def get_bodies_in_folder(self, folder: IBodyFolder, use_cache: bool = True) -> List[IBody2]:
         """
         TODO: need provide verbose comment
         """

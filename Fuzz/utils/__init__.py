@@ -14,7 +14,7 @@ def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]
     def check_main_name(main_name: str) -> str:
         main_name_pattern = r'\w+(-\w)*'
         if not bool(re.match(main_name_pattern, main_name)):
-            raise Exception(f"main-name does not match regular expression: {main_name_pattern}")
+            raise Exception(f"main-name does not match by regular expression: {main_name_pattern}")
         return main_name
 
     def check_name_suffixes(body_suffixes: List[str]) -> str:
