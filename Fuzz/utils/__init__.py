@@ -3,7 +3,7 @@ import re, difflib, functools
 from typing import List, Tuple, Optional
 
 from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
-from .solid_works import ModelUtils, OpenDocument, open_document
+from .solid_works import ModelUtils, connect_to_sw2025, OpenDocument, open_document
 
 
 def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
@@ -19,14 +19,15 @@ def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]
     Raises:
         Exception: Invalid name or suffixes.
     """
+
     def check_main_name(main_name: str) -> str:
-        main_name_pattern = r'\\w+( -\\w)*'
+        main_name_pattern = r'\w+(-\w)*'
         if not bool(re.match(main_name_pattern, main_name)):
             raise Exception(f"main-name does not match by regular expression: {main_name_pattern}")
         return main_name
 
     def check_name_suffixes(body_suffixes: List[str]) -> str:
-        available_suffixes = [r'R', r'L', r'U', r'D', r'F', r'B', r'\\d+']
+        available_suffixes = [r'R', r'L', r'U', r'D', r'F', r'B', r'\d+']
         for body_suffix in body_suffixes:
             if any([bool(re.match(available_suffix, body_suffix)) for available_suffix in available_suffixes]):
                 return body_suffix
@@ -68,6 +69,7 @@ __all__ = [
     'ERROR',
     # .solid_works
     'ModelUtils',
+    'connect_to_sw2025',
     'OpenDocument',
     'open_document',
     # local utils functions

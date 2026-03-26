@@ -17,7 +17,7 @@ class ModelUtils:
         self.model_folders_cache: Dict[str, List[IBodyFolder]] = {}
         self.folder_bodies_cache: Dict[str, List[IBody2]] = {}
 
-    def get_unique_bodies(self, bodies: List[IBody2], show_log: bool = True) -> List[Tuple[str, int, IBody2]]:
+    def get_unique_bodies(self, bodies: List[IBody2], show_log: bool = True) -> List[List[IBody2]]:
         """
         Groups a list of SolidWorks solid bodies (IBody2) into unique sets based on geometric coincidence.
 
@@ -26,7 +26,7 @@ class ModelUtils:
             show_log (bool): if True - the working log will be printed in the consol
 
         Returns:
-            List[Tuple[str, int, IBody2]]: List of tuples (common_name, quantity, representative_body) for each unique group.
+            List[List[IBody2]]: List of lists of same bodies
         """
         unique_bodies = []
         while len(bodies) != 0:
@@ -41,14 +41,7 @@ class ModelUtils:
                     remain_bodies.append(body2)
             bodies = remain_bodies
 
-        def prepare_result(same_bodies: List[IBody2]):
-            names = [body.name for body in same_bodies]
-            common_name = utils.longest_common_substring(names).strip()
-            if show_log:
-                utils.INFO.log_line(f"next {len(names)} bodies {names} are same and their common name is '{common_name}'")
-            return (common_name, len(same_bodies), same_bodies[0])
-
-        return [prepare_result(same_bodies) for same_bodies in unique_bodies]
+        return unique_bodies
 
     def get_folders_in_model(self, model: IModelDoc2, use_cache: bool = True) -> List[IBodyFolder]:
         """

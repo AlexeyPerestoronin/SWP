@@ -6,6 +6,15 @@ from pyswx.api.swconst.enumerations import SWFileLoadWarningE
 
 from ..logger import STATUS
 
+
+def connect_to_sw2025() -> ISldWorks:
+    if not hasattr(connect_to_sw2025, 'sw2025'):
+        setattr(connect_to_sw2025, 'sw2025', PySWX(version=2025).application)
+    sw2025 = getattr(connect_to_sw2025, 'sw2025')
+    assert sw2025
+    return sw2025
+
+
 class OpenDocument:
     """
     Context manager-like class for opening/connecting to SolidWorks document (SLDPRT/SLDASM).
@@ -15,14 +24,12 @@ class OpenDocument:
     Provides sw (ISldWorks) and root_model (IModelDoc2) properties.
     Logs open/connect and close/disconnect actions.
     """
+
     def __init__(self, path: pathlib.Path):
         self.__path = path
         assert self.__path
 
-        if not hasattr(OpenDocument, 'sw2025'):
-            setattr(OpenDocument, 'sw2025', PySWX(version=2025).application)
-        self.__sw2025 = getattr(OpenDocument, 'sw2025')
-        assert self.__sw2025
+        self.__sw2025 = connect_to_sw2025()
 
         open_spec: ISldWorks = self.__sw2025.get_open_doc_spec(file_name=self.__path)
         open_spec.use_light_weight_default = True
