@@ -1,0 +1,1 @@
+**Collection of SW2025 projects and automated scripts**
