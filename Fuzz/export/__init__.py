@@ -9,15 +9,14 @@ import check
 
 def prepare_save_path_for_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2]):
     model_name = parent_model.get_path_name().stem
-    sw_utils = utils.ModelUtils()
     save_path_and_body = {}
-    unique_bodies_sets = sw_utils.get_unique_bodies(bodies)
+    unique_bodies_sets = utils.get_unique_bodies(bodies)
     for unique_bodies_set in unique_bodies_sets:
         utils.STATUS.log_line(f"detected {len(unique_bodies_set)} unique bodies {[body.name for body in unique_bodies_set]}")
         quantity = len(unique_bodies_set)
         common_name = ' + '.join(set([utils.validate_and_parse_body_name(body.name)[0] for body in unique_bodies_set]))
         representative_body = unique_bodies_set[0]
-        body_folder_name = sw_utils.detect_folder_for_body(parent_model, representative_body) if '+' not in common_name else None
+        body_folder_name = utils.detect_folder_for_body(parent_model, representative_body) if '+' not in common_name else None
         if body_folder_name:
             step_file_name = pathlib.Path(f"{model_name} {body_folder_name} {common_name} [{quantity}]").with_suffix(".step")
         else:

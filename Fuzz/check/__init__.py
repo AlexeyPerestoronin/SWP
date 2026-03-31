@@ -38,7 +38,7 @@ def folders_naming(ctx, path: str = None):
     """
 
     root_model = utils.open_document(path, SWDocumentTypesE.SW_DOC_PART).root_model
-    assert utils.validate_folders_naming(utils.ModelUtils().get_folders_in_model(root_model))
+    assert utils.validate_folders_naming(utils.get_folders_in_model(root_model))
     utils.SUCCESS.log_line("all folders' names is right!")
 
 
