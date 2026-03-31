@@ -1,6 +1,10 @@
 from typing import List
 from pyswx.api.sldworks.interfaces import IBody2, IBodyFolder
 
+__all__ = [
+    'get_bodies_in_folder',
+]
+
 
 def get_bodies_in_folder(folder: IBodyFolder, use_cache: bool = True) -> List[IBody2]:
     """
@@ -26,8 +30,3 @@ def get_bodies_in_folder(folder: IBodyFolder, use_cache: bool = True) -> List[IB
             cached_bodies.append(body_in_folder)
         folder_bodies_cache[cache_key] = cached_bodies
     return cached_bodies
-
-
-__all__ = [
-    'get_bodies_in_folder',
-]

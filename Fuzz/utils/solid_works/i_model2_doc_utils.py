@@ -4,6 +4,11 @@ from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
 
 from . import i_body_folder_utils
 
+__all__ = [
+    'get_folders_in_model',
+    'detect_folder_for_body',
+]
+
 
 def get_folders_in_model(model: IModelDoc2, use_cache: bool = True) -> List[IBodyFolder]:
     """
@@ -57,9 +62,3 @@ def detect_folder_for_body(model: IModelDoc2, body: IBody2, use_cache: bool = Tr
                 if folder.type == SWBodyFolderFeatureTypE.SW_BODY_SUB_FOLDER:
                     return folder.get_feature().name
     raise Exception(f"cannot detect folder for the body {body.name}")
-
-
-__all__ = [
-    'get_folders_in_model',
-    'detect_folder_for_body',
-]

@@ -1,6 +1,14 @@
 import colorama
 from enum import Enum
 
+__all__ = [
+    'SUCCESS',
+    'STATUS',
+    'INFO',
+    'WARNING',
+    'ERROR',
+]
+
 
 class Color(Enum):
     RED = colorama.Fore.RED

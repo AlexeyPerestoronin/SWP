@@ -1,6 +1,10 @@
 from typing import List
 from pyswx.api.sldworks.interfaces import IBody2
 
+__all__ = [
+    'get_unique_bodies',
+]
+
 
 def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[List[IBody2]]:
     """
@@ -26,8 +30,3 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[List[
                 remain_bodies.append(body2)
         bodies = remain_bodies
     return unique_bodies
-
-
-__all__ = [
-    'get_unique_bodies',
-]

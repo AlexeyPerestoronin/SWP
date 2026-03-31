@@ -6,6 +6,19 @@ from pyswx.api.swconst.enumerations import SWFileLoadWarningE, SWDocumentTypesE
 
 from ..logger import STATUS
 
+from .i_model2_doc_utils import *
+from .i_body_utils import *
+from .i_body_folder_utils import *
+
+__all__ = [
+    'connect_to_sw2025',
+    'open_document',
+    # sub modules
+    *i_model2_doc_utils.__all__,
+    *i_body_utils.__all__,
+    *i_body_folder_utils.__all__,
+]
+
 
 def connect_to_sw2025() -> ISldWorks:
     if not hasattr(connect_to_sw2025, 'sw2025'):
@@ -76,16 +89,3 @@ def open_document(path: pathlib.Path, doc_type: SWDocumentTypesE = SWDocumentTyp
     if model_key not in open_models:
         open_models[model_key] = OpenDocument(path, doc_type)
     return open_models[model_key]
-
-
-from .i_model2_doc_utils import *
-from .i_body_utils import *
-from .i_body_folder_utils import *
-
-__all__ = [
-    'connect_to_sw2025',
-    'open_document',
-    *i_model2_doc_utils.__all__,
-    *i_body_utils.__all__,
-    *i_body_folder_utils.__all__,
-]

@@ -2,7 +2,20 @@ import re, difflib, functools
 from typing import List, Tuple, Optional
 from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
 
-from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
+from .logger import *
+from .solid_works import *
+
+__all__ = [
+    # local utils functions
+    'validate_and_parse_body_name',
+    'validate_project_naming',
+    'validate_bodies_naming',
+    'validate_folders_naming',
+    'longest_common_substring',
+    # sub modules
+    *solid_works.__all__,
+    *logger.__all__,
+]
 
 
 def validate_and_parse_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
@@ -92,23 +105,3 @@ def longest_common_substring(strings: List[str]) -> str:
         return a[match.a:match.a + match.size]
 
     return functools.reduce(lcs_pair, strings)
-
-
-from .solid_works import *
-
-__all__ = [
-    # .logger
-    'SUCCESS',
-    'STATUS',
-    'INFO',
-    'WARNING',
-    'ERROR',
-    # local utils functions
-    'validate_and_parse_body_name',
-    'validate_project_naming',
-    'validate_bodies_naming',
-    'validate_folders_naming',
-    'longest_common_substring',
-    # solid_works module
-    *solid_works.__all__,
-]
