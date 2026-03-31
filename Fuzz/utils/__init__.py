@@ -1,12 +1,13 @@
 import re, difflib, functools
 
 from typing import List, Tuple, Optional
+from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
 
 from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
 from .solid_works import ModelUtils, connect_to_sw2025, OpenDocument, open_document
 
 
-def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
+def validate_and_parse_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
     """
     Parse SolidWorks body name into main name and optional suffixes.
 
@@ -43,6 +44,41 @@ def parse_and_check_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]
         raise Exception(f"body name '{body_name}' has unsatisfied condition -> {error}")
 
 
+def validate_project_naming(model: IModelDoc2):
+    """
+    Check project name via its model
+    """
+
+    model_name = model.get_path_name().stem
+    model_name_pattern = r'[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w)*'
+    if not bool(re.match(model_name_pattern, model_name)):
+        raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
+    return True
+
+
+def validate_bodies_naming(bodies: List[IBody2]):
+    """
+    Validate names of all bodies in list.
+    """
+    for body in bodies:
+        body_name = body.name
+        assert validate_and_parse_body_name(body_name)
+    return True
+
+
+def validate_folders_naming(folders: List[IBodyFolder]):
+    """
+    Check names of all folders in list.
+    """
+
+    folder_name_pattern = r'\w+(-\w+)*'
+    for folder in folders:
+        folder_name = folder.get_feature().name
+        if not bool(re.match(folder_name_pattern, folder_name)):
+            raise Exception(f"folder name '{folder_name}' does not match by regular expression: {folder_name_pattern}")
+    return True
+
+
 def longest_common_substring(strings: List[str]) -> str:
     """
     Returns longest common substring for all strings in the list using difflib.
@@ -73,6 +109,9 @@ __all__ = [
     'OpenDocument',
     'open_document',
     # local utils functions
-    'parse_and_check_body_name',
+    'validate_and_parse_body_name',
+    'validate_project_naming',
+    'validate_bodies_naming',
+    'validate_folders_naming',
     'longest_common_substring',
 ]

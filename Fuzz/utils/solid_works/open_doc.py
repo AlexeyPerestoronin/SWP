@@ -1,8 +1,8 @@
 import pathlib
 
 from pyswx import PySWX
-from pyswx.api.sldworks.interfaces import ISldWorks, IModelDoc2
-from pyswx.api.swconst.enumerations import SWFileLoadWarningE
+from pyswx.api.sldworks.interfaces import ISldWorks, IModelDoc2, IDocumentSpecification
+from pyswx.api.swconst.enumerations import SWFileLoadWarningE, SWDocumentTypesE
 
 from ..logger import STATUS
 
@@ -25,17 +25,18 @@ class OpenDocument:
     Logs open/connect and close/disconnect actions.
     """
 
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, path: pathlib.Path, doc_type: SWDocumentTypesE):
         self.__path = path
         assert self.__path
 
         self.__sw2025 = connect_to_sw2025()
 
-        open_spec: ISldWorks = self.__sw2025.get_open_doc_spec(file_name=self.__path)
-        open_spec.use_light_weight_default = True
-        open_spec.light_weight = True
-        open_spec.silent = True
-        self.__root_model, warning, error = self.__sw2025.open_doc7(specification=open_spec)
+        open_specification: IDocumentSpecification = self.__sw2025.get_open_doc_spec(file_name=self.__path)
+        open_specification.document_type = doc_type
+        open_specification.use_light_weight_default = True
+        open_specification.light_weight = True
+        open_specification.silent = True
+        self.__root_model, warning, error = self.__sw2025.open_doc7(specification=open_specification)
         assert not error
         assert self.__root_model
 
@@ -56,7 +57,7 @@ class OpenDocument:
         return self.__root_model
 
 
-def open_document(path: pathlib.Path) -> OpenDocument:
+def open_document(path: pathlib.Path, doc_type: SWDocumentTypesE = SWDocumentTypesE.SW_DOC_PART) -> OpenDocument:
     """
     Cached factory for OpenDocument.
 
@@ -73,5 +74,5 @@ def open_document(path: pathlib.Path) -> OpenDocument:
     open_models = get_open_models()
     model_key = str(path)
     if model_key not in open_models:
-        open_models[model_key] = OpenDocument(path)
+        open_models[model_key] = OpenDocument(path, doc_type)
     return open_models[model_key]

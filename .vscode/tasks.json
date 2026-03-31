@@ -1,5 +1,10 @@
 {
     "version": "2.0.0",
+    "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+    },
+    "problemMatcher": [],
     "tasks": [
         {
             "label": "YAPF",
@@ -7,18 +12,30 @@
             "group": "none",
             "command": "${workspaceFolder}/Fuzz/.venv/Scripts/yapf.exe",
             "args": [
-                "--style", "${workspaceFolder}/Fuzz/.style.yapf",
+                "--style",
+                "${workspaceFolder}/Fuzz/.style.yapf",
                 "--recursive",
                 "--in-place",
                 "--parallel",
-                "--exclude", "**/.venv/**",
-                "${workspaceFolder}/Fuzz" 
-            ],
-            "presentation": {
-                "reveal": "silent",
-                "panel": "shared"
+                "--exclude",
+                "**/.venv/**",
+                "${workspaceFolder}/Fuzz"
+            ]
+        },
+        {
+            "label": "sewing table frame: export.step-from-part",
+            "type": "shell",
+            "group": "none",
+            "command": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/Fuzz"
             },
-            "problemMatcher": []
+            "args": [
+                "export.step-from-part",
+                //"--execute",
+                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT",
+                "--save-subfolder", "STEP",
+            ]
         }
     ]
 }

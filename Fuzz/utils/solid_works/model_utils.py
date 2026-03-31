@@ -1,14 +1,6 @@
-from typing import List
-from typing import Tuple
-from typing import Dict
-
-from pyswx.api.sldworks.interfaces import IModelDoc2
-from pyswx.api.sldworks.interfaces import IBody2
-from pyswx.api.sldworks.interfaces import IBodyFolder
-
+from typing import List, Dict
+from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
 from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
-
-import utils
 
 
 class ModelUtils:
@@ -105,7 +97,6 @@ class ModelUtils:
         Raises:
             Exception: Body not found in any folder.
         """
-        pass
         for folder in self.get_folders_in_model(model, use_cache):
             for body_in_folder in self.get_bodies_in_folder(folder, use_cache):
                 if body_in_folder.name == body.name:

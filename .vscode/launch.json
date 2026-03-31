@@ -5,18 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug invoke task",
+            "name": "Debug: export.step-from-part",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
             "cwd": "${workspaceFolder}/Fuzz",
             "args": [
-                "export.step",
+                "export.step-from-part",
                 //"--execute",
-                "--path",
-                "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT",
-                "--save-subfolder",
-                "STEP"
+                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT",
+                "--save-subfolder", "STEP",
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug: export.step-from-assembly",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
+            "cwd": "${workspaceFolder}/Fuzz",
+            "args": [
+                "export.step-from-assembly",
+                //"--execute",
+                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный.SLDPRT.SLDASM",
+                "--save-subfolder", "STEP",
             ],
             "console": "integratedTerminal"
         }
