@@ -27,7 +27,7 @@
             "args": [
                 "export.step-from-assembly",
                 //"--execute",
-                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный.SLDPRT.SLDASM",
+                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный.SLDASM",
                 "--save-subfolder", "STEP",
             ],
             "console": "integratedTerminal"

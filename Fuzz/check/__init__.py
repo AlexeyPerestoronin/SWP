@@ -11,7 +11,7 @@ def project_naming(ctx, path: str = None):
     """
     Check project name via its filename for a SW project.
     """
-    assert utils.validate_project_naming(utils.open_document(path, SWDocumentTypesE.SW_DOC_PART).root_model)
+    assert utils.validate_project_naming(utils.open_document(path).root_model)
     utils.SUCCESS.log_line("model name is right")
 
 

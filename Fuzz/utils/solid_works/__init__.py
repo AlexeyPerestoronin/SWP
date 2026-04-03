@@ -1,4 +1,5 @@
 import pathlib
+from typing import Tuple
 
 from pyswx import PySWX
 from pyswx.api.sldworks.interfaces import ISldWorks, IModelDoc2, IDocumentSpecification
@@ -38,14 +39,15 @@ class OpenDocument:
     Logs open/connect and close/disconnect actions.
     """
 
-    def __init__(self, path: pathlib.Path, doc_type: SWDocumentTypesE):
+    def __init__(self, path: pathlib.Path, doc_type: Tuple[None, SWDocumentTypesE]):
         self.__path = path
         assert self.__path
 
         self.__sw2025 = connect_to_sw2025()
 
         open_specification: IDocumentSpecification = self.__sw2025.get_open_doc_spec(file_name=self.__path)
-        open_specification.document_type = doc_type
+        if doc_type:
+            open_specification.document_type = doc_type
         open_specification.use_light_weight_default = True
         open_specification.light_weight = True
         open_specification.silent = True
@@ -70,7 +72,7 @@ class OpenDocument:
         return self.__root_model
 
 
-def open_document(path: pathlib.Path, doc_type: SWDocumentTypesE = SWDocumentTypesE.SW_DOC_PART) -> OpenDocument:
+def open_document(path: pathlib.Path, doc_type: Tuple[None, SWDocumentTypesE] = None) -> OpenDocument:
     """
     Cached factory for OpenDocument.
 

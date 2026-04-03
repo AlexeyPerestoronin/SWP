@@ -9,6 +9,7 @@ __all__ = [
     # local utils functions
     'validate_and_parse_body_name',
     'validate_project_naming',
+    'validate_model_naming',
     'validate_bodies_naming',
     'validate_folders_naming',
     'longest_common_substring',
@@ -61,10 +62,29 @@ def validate_project_naming(model: IModelDoc2):
     """
 
     model_name = model.get_path_name().stem
-    model_name_pattern = r'[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w)*'
-    if not bool(re.match(model_name_pattern, model_name)):
+    model_name_pattern = r'[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*'
+    if not bool(re.fullmatch(model_name_pattern, model_name)):
         raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
     return True
+
+
+type ModelName = str
+type AssemblyName = Tuple[str, None]
+type FullModelName = Tuple[ModelName, AssemblyName]
+def validate_model_naming(model: IModelDoc2) -> FullModelName:
+    """
+    Check model name.
+    
+    Return: TODO: provide some description
+    """
+
+    model_name = 'Направляющая-Средняя^Ящик-Выдвижной' #model.get_path_name().stem
+    model_name_pattern = r'(?P<model_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*)(\^(?P<assembly_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*))?'
+    match = re.fullmatch(model_name_pattern, model_name)
+    if match:
+        groups = match.groupdict()
+        return (groups['model_name'], groups.get('assembly_name', None))
+    raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
 
 
 def validate_bodies_naming(bodies: List[IBody2]):

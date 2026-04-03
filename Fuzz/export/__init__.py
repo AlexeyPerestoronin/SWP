@@ -1,5 +1,5 @@
 import invoke, pathlib
-from typing import List
+from typing import List, Tuple
 from pyswx.api.sldworks.interfaces import IAssemblyDoc, IModelDoc2, IComponent2, IBody2
 from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWSaveAsOptionsE, SWSaveAsVersionE, SWBodyTypeE
 
@@ -7,9 +7,12 @@ import utils
 import check
 
 
-def prepare_save_path_for_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2]):
+def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2]) -> List[Tuple[pathlib.Path, IBody2, int]]:
+    """
+    TODO: need to provide some comment...
+    """
     model_name = parent_model.get_path_name().stem
-    save_path_and_body = {}
+    results: List[Tuple[pathlib.Path, IBody2, int]] = []
     unique_bodies_sets = utils.get_unique_bodies(bodies)
     for unique_bodies_set in unique_bodies_sets:
         utils.STATUS.log_line(f"detected {len(unique_bodies_set)} unique bodies {[body.name for body in unique_bodies_set]}")
@@ -18,15 +21,15 @@ def prepare_save_path_for_bodies(parent_model: IModelDoc2, save_folder: pathlib.
         representative_body = unique_bodies_set[0]
         body_folder_name = utils.detect_folder_for_body(parent_model, representative_body) if '+' not in common_name else None
         if body_folder_name:
-            step_file_name = pathlib.Path(f"{model_name} {body_folder_name} {common_name} [{quantity}]").with_suffix(".step")
+            step_file_name = pathlib.Path(f"{model_name} {body_folder_name} {common_name}")
         else:
-            step_file_name = pathlib.Path(f"{model_name} {common_name} [{quantity}]").with_suffix(".step")
-        step_path = save_folder / step_file_name
-        if step_path not in save_path_and_body.keys():
-            save_path_and_body[step_path] = representative_body
-        else:
-            raise Exception(f"step path '{step_path}' for rep-body '{representative_body.name}' is already reserved by body '{save_path_and_body[step_path].name}'")
-    return save_path_and_body
+            step_file_name = pathlib.Path(f"{model_name} {common_name}")
+        common_save_path = save_folder / step_file_name
+        for (save_path, save_body, _) in results:
+            if common_save_path == save_path:
+                raise Exception(f"step path '{common_save_path}' for rep-body '{representative_body.name}' is already reserved by body '{save_body.name}'")
+        results.append((common_save_path, representative_body, quantity))
+    return results
 
 
 @invoke.task(
@@ -52,8 +55,9 @@ def step_from_part(ctx, path: str = None, save_subfolder: str = None, execute: b
         save_folder = save_folder / pathlib.Path(save_subfolder)
     component = root_model.configuration_manager.active_configuration.get_root_component3(True)
     bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
-    save_paths_and_bodies = prepare_save_path_for_bodies(root_model, save_folder, bodies)
-    for (step_path, body) in save_paths_and_bodies.items():
+    save_paths_and_bodies = make_common_save_path_for_unique_bodies(root_model, save_folder, bodies)
+    for (step_path, body, quantity) in save_paths_and_bodies:
+        step_path = step_path.with_name(f"{step_path.stem} [{quantity}]").with_suffix(".step")
         if execute:
             try:
                 root_model.clear_selection2(True)
@@ -93,9 +97,10 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
         component_type = component.get_type()
         if component_type == SWDocumentTypesE.SW_DOC_PART:
             model = component.get_model_doc2()
+            assert utils.validate_model_naming(model)
             bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
             assert utils.validate_bodies_naming(bodies)
-            save_paths_and_bodies = prepare_save_path_for_bodies(model, save_folder, bodies)
+            # save_paths_and_bodies = make_common_save_path_for_unique_bodies(model, save_folder, bodies)
 
             # model_path = model.get_path_name()
             # active_configuration_description = model.configuration_manager.active_configuration.description
