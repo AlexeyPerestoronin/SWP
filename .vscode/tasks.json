@@ -17,9 +17,9 @@
                 "--recursive",
                 "--in-place",
                 "--parallel",
-                "--exclude",
-                "**/.venv/**",
-                "${workspaceFolder}/Fuzz"
+                "${workspaceFolder}/Fuzz",
+                 "--exclude",
+                 "${workspaceFolder}/Fuzz/.venv/**",
             ]
         },
         {

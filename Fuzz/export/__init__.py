@@ -17,7 +17,7 @@ def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folde
     for unique_bodies_set in unique_bodies_sets:
         utils.STATUS.log_line(f"detected {len(unique_bodies_set)} unique bodies {[body.name for body in unique_bodies_set]}")
         quantity = len(unique_bodies_set)
-        common_name = ' + '.join(set([utils.validate_and_parse_body_name(body.name).main_name for body in unique_bodies_set]))
+        common_name = ' + '.join(set([utils.validate_and_parse_body_name(body).main_name for body in unique_bodies_set]))
         representative_body = unique_bodies_set[0]
         body_folder_name = utils.detect_folder_for_body(parent_model, representative_body) if '+' not in common_name else None
         if body_folder_name:

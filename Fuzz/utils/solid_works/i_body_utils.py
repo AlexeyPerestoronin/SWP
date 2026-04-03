@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple
+from typing import TypeAlias, List, Tuple
 from pyswx.api.sldworks.interfaces import IBody2
 
 __all__ = [
@@ -35,26 +35,27 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[List[
         bodies = remain_bodies
     return unique_bodies
 
+
 class ValidBodyName:
-    type MainName = str
-    type SuffixesOpt = Tuple[List[str], None]
+    MainName: TypeAlias = str
+    SuffixesOpt: TypeAlias = Tuple[List[str], None]
 
     def __init__(self, main_name: MainName, suffixes: SuffixesOpt):
         self.__main_name = main_name
         self.__suffixes = suffixes
-    
+
     @property
     def main_name(self) -> MainName:
         return self.__main_name
-    
+
     @property
     def suffixes(self) -> SuffixesOpt:
         return self.__suffixes
 
 
-def validate_and_parse_body_name(body_name: str) -> ValidBodyName:
+def validate_and_parse_body_name(body: IBody2) -> ValidBodyName:
     """
-    Parse SolidWorks body name into main name and optional suffixes.
+    Validate and parse name of the SW-IBody2.
     """
 
     def check_main_name(main_name: str) -> str:
@@ -71,6 +72,7 @@ def validate_and_parse_body_name(body_name: str) -> ValidBodyName:
             raise Exception(f"unexpected body suffix: {body_suffix}")
 
     try:
+        body_name = body.name
         if ' ' in body_name:
             parts = body_name.split(' ')
             return ValidBodyName(check_main_name(parts[0]), [suffix for suffix in check_name_suffixes(parts[1:])])
@@ -84,4 +86,4 @@ def validate_and_parse_bodies_names(bodies: List[IBody2]) -> List[ValidBodyName]
     """
     Validate names of all bodies in list.
     """
-    return [validate_and_parse_body_name(body.name) for body in bodies]
+    return [validate_and_parse_body_name(body) for body in bodies]

@@ -1,7 +1,7 @@
-# import re
-# from typing import List, Tuple
-# from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
-# from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
+import re
+from typing import TypeAlias, List, Tuple
+from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
+from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
 
 from . import i_body_folder_utils
 
@@ -12,25 +12,27 @@ __all__ = [
     'detect_folder_for_body',
 ]
 
+
 class ValidModelName:
-    type ModelName = str
-    type AssemblyName = Tuple[str, None]
+    ModelName: TypeAlias = str
+    AssemblyName: TypeAlias = Tuple[str, None]
 
     def __init__(self, model_name: ModelName, assembly_name: AssemblyName):
         self.__model_name = model_name
         self.__assembly_name = assembly_name
-    
+
     @property
     def model_name(self) -> ModelName:
         return self.__model_name
-    
+
     @property
     def assembly_name(self) -> AssemblyName:
         return self.__assembly_name
 
+
 def validate_and_parse_model_name(model: IModelDoc2) -> ValidModelName:
     """
-    Check model name.
+    Validate and parse name of the SW-IModelDoc2.
     """
 
     model_name = model.get_path_name().stem
