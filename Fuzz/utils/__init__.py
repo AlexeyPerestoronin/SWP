@@ -7,9 +7,10 @@ from .solid_works import *
 
 __all__ = [
     # local utils functions
+    'ValidBodyName',
     'validate_and_parse_body_name',
     'validate_project_naming',
-    'validate_model_naming',
+    'validate_and_parse_model_name',
     'validate_bodies_naming',
     'validate_folders_naming',
     'longest_common_substring',
@@ -18,8 +19,24 @@ __all__ = [
     *logger.__all__,
 ]
 
+class ValidBodyName:
+    type MainName = str
+    type SuffixesOpt = Tuple[List[str], None]
 
-def validate_and_parse_body_name(body_name: str) -> Tuple[str, Optional[List[str]]]:
+    def __init__(self, main_name: MainName, suffixes: SuffixesOpt):
+        self.__main_name = main_name
+        self.__suffixes = suffixes
+    
+    @property
+    def main_name(self) -> MainName:
+        return self.__main_name
+    
+    @property
+    def suffixes(self) -> SuffixesOpt:
+        return self.__suffixes
+
+
+def validate_and_parse_body_name(body_name: str) -> ValidBodyName:
     """
     Parse SolidWorks body name into main name and optional suffixes.
 
@@ -49,9 +66,9 @@ def validate_and_parse_body_name(body_name: str) -> Tuple[str, Optional[List[str
     try:
         if ' ' in body_name:
             parts = body_name.split(' ')
-            return (check_main_name(parts[0]), [suffix for suffix in check_name_suffixes(parts[1:])])
+            return ValidBodyName(check_main_name(parts[0]), [suffix for suffix in check_name_suffixes(parts[1:])])
         else:
-            return (check_main_name(body_name), None)
+            return ValidBodyName(check_main_name(body_name), None)
     except Exception as error:
         raise Exception(f"body name '{body_name}' has unsatisfied condition -> {error}")
 
@@ -71,7 +88,7 @@ def validate_project_naming(model: IModelDoc2):
 type ModelName = str
 type AssemblyName = Tuple[str, None]
 type FullModelName = Tuple[ModelName, AssemblyName]
-def validate_model_naming(model: IModelDoc2) -> FullModelName:
+def validate_and_parse_model_name(model: IModelDoc2) -> FullModelName:
     """
     Check model name.
     

@@ -17,7 +17,7 @@ def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folde
     for unique_bodies_set in unique_bodies_sets:
         utils.STATUS.log_line(f"detected {len(unique_bodies_set)} unique bodies {[body.name for body in unique_bodies_set]}")
         quantity = len(unique_bodies_set)
-        common_name = ' + '.join(set([utils.validate_and_parse_body_name(body.name)[0] for body in unique_bodies_set]))
+        common_name = ' + '.join(set([utils.validate_and_parse_body_name(body.name).main_name for body in unique_bodies_set]))
         representative_body = unique_bodies_set[0]
         body_folder_name = utils.detect_folder_for_body(parent_model, representative_body) if '+' not in common_name else None
         if body_folder_name:
@@ -97,7 +97,7 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
         component_type = component.get_type()
         if component_type == SWDocumentTypesE.SW_DOC_PART:
             model = component.get_model_doc2()
-            assert utils.validate_model_naming(model)
+            assert utils.validate_and_parse_model_name(model)
             bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
             assert utils.validate_bodies_naming(bodies)
             # save_paths_and_bodies = make_common_save_path_for_unique_bodies(model, save_folder, bodies)
