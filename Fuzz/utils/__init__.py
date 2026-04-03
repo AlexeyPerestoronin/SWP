@@ -7,70 +7,13 @@ from .solid_works import *
 
 __all__ = [
     # local utils functions
-    'ValidBodyName',
-    'validate_and_parse_body_name',
     'validate_project_naming',
-    'validate_and_parse_model_name',
-    'validate_bodies_naming',
     'validate_folders_naming',
     'longest_common_substring',
     # sub modules
     *solid_works.__all__,
     *logger.__all__,
 ]
-
-class ValidBodyName:
-    type MainName = str
-    type SuffixesOpt = Tuple[List[str], None]
-
-    def __init__(self, main_name: MainName, suffixes: SuffixesOpt):
-        self.__main_name = main_name
-        self.__suffixes = suffixes
-    
-    @property
-    def main_name(self) -> MainName:
-        return self.__main_name
-    
-    @property
-    def suffixes(self) -> SuffixesOpt:
-        return self.__suffixes
-
-
-def validate_and_parse_body_name(body_name: str) -> ValidBodyName:
-    """
-    Parse SolidWorks body name into main name and optional suffixes.
-
-    Main name: word chars, optionally hyphen-separated word parts.
-    Suffixes: space-separated R/L/U/D/F/B or numbers.
-
-    Returns:
-        Tuple[str, Optional[List[str]]]: (main_name, suffixes)
-
-    Raises:
-        Exception: Invalid name or suffixes.
-    """
-
-    def check_main_name(main_name: str) -> str:
-        main_name_pattern = r'\w+(-\w)*'
-        if not bool(re.match(main_name_pattern, main_name)):
-            raise Exception(f"main-name does not match by regular expression: {main_name_pattern}")
-        return main_name
-
-    def check_name_suffixes(body_suffixes: List[str]) -> str:
-        available_suffixes = [r'R', r'L', r'U', r'D', r'F', r'B', r'\d+']
-        for body_suffix in body_suffixes:
-            if any([bool(re.match(available_suffix, body_suffix)) for available_suffix in available_suffixes]):
-                return body_suffix
-            raise Exception(f"unexpected body suffix: {body_suffix}")
-
-    try:
-        if ' ' in body_name:
-            parts = body_name.split(' ')
-            return ValidBodyName(check_main_name(parts[0]), [suffix for suffix in check_name_suffixes(parts[1:])])
-        else:
-            return ValidBodyName(check_main_name(body_name), None)
-    except Exception as error:
-        raise Exception(f"body name '{body_name}' has unsatisfied condition -> {error}")
 
 
 def validate_project_naming(model: IModelDoc2):
@@ -82,35 +25,6 @@ def validate_project_naming(model: IModelDoc2):
     model_name_pattern = r'[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*'
     if not bool(re.fullmatch(model_name_pattern, model_name)):
         raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
-    return True
-
-
-type ModelName = str
-type AssemblyName = Tuple[str, None]
-type FullModelName = Tuple[ModelName, AssemblyName]
-def validate_and_parse_model_name(model: IModelDoc2) -> FullModelName:
-    """
-    Check model name.
-    
-    Return: TODO: provide some description
-    """
-
-    model_name = 'Направляющая-Средняя^Ящик-Выдвижной' #model.get_path_name().stem
-    model_name_pattern = r'(?P<model_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*)(\^(?P<assembly_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*))?'
-    match = re.fullmatch(model_name_pattern, model_name)
-    if match:
-        groups = match.groupdict()
-        return (groups['model_name'], groups.get('assembly_name', None))
-    raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
-
-
-def validate_bodies_naming(bodies: List[IBody2]):
-    """
-    Validate names of all bodies in list.
-    """
-    for body in bodies:
-        body_name = body.name
-        assert validate_and_parse_body_name(body_name)
     return True
 
 

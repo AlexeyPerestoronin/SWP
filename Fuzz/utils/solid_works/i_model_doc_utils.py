@@ -1,13 +1,31 @@
-from typing import List
+import re
+from typing import List, Tuple
 from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
 from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
 
 from . import i_body_folder_utils
 
 __all__ = [
+    'validate_and_parse_model_name',
     'get_folders_in_model',
     'detect_folder_for_body',
 ]
+
+type ModelName = str
+type AssemblyName = Tuple[str, None]
+type FullModelName = Tuple[ModelName, AssemblyName]
+def validate_and_parse_model_name(model: IModelDoc2) -> FullModelName:
+    """
+    Check model name.
+    """
+
+    model_name = 'Направляющая-Средняя^Ящик-Выдвижной' #model.get_path_name().stem
+    model_name_pattern = r'(?P<model_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*)(\^(?P<assembly_name>[A-ZА-ЯЁ]\w+(-[A-ZА-ЯЁ]\w+)*))?'
+    match = re.fullmatch(model_name_pattern, model_name)
+    if match:
+        groups = match.groupdict()
+        return (groups['model_name'], groups.get('assembly_name', None))
+    raise Exception(f"model name '{model_name}' does not match by regular expression: {model_name_pattern}")
 
 
 def get_folders_in_model(model: IModelDoc2, use_cache: bool = True) -> List[IBodyFolder]:

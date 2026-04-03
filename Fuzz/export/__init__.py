@@ -99,7 +99,7 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
             model = component.get_model_doc2()
             assert utils.validate_and_parse_model_name(model)
             bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
-            assert utils.validate_bodies_naming(bodies)
+            assert utils.validate_and_parse_bodies_names(bodies)
             # save_paths_and_bodies = make_common_save_path_for_unique_bodies(model, save_folder, bodies)
 
             # model_path = model.get_path_name()

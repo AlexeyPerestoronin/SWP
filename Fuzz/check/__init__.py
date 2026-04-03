@@ -25,7 +25,7 @@ def bodies_naming(ctx, path: str = None):
 
     root_model = utils.open_document(path).root_model
     component = root_model.configuration_manager.active_configuration.get_root_component3(True)
-    assert utils.validate_bodies_naming(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
+    assert utils.validate_and_parse_bodies_names(component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY))
     utils.SUCCESS.log_line("all bodies' names is right!")
 
 
