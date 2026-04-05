@@ -3,14 +3,23 @@ from typing import TypeAlias, List, Tuple
 from pyswx.api.sldworks.interfaces import IBody2
 
 __all__ = [
-    'get_unique_bodies',
+    'is_two_body_equal',
+    'get_equal_bodies_groups',
     'ValidBodyName',
     'validate_and_parse_body_name',
     'validate_and_parse_bodies_names',
 ]
 
 
-def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[List[IBody2]]:
+def is_two_body_equal(body1: IBody2, body2: IBody2) -> bool:
+    """
+    Checking two bodies if their are equal (fully geometrical coincidence).
+    """
+    (result, _) = body1.get_coincidence_transform_2(body2)
+    return result
+
+
+def get_equal_bodies_groups(bodies: List[IBody2], show_log: bool = True) -> List[List[IBody2]]:
     """
     Groups a list of SolidWorks solid bodies (IBody2) into unique sets based on geometric coincidence.
 
@@ -27,8 +36,7 @@ def get_unique_bodies(bodies: List[IBody2], show_log: bool = True) -> List[List[
         body1 = bodies[0]
         unique_bodies.append([body1])
         for body2 in bodies[1:]:
-            (result, _) = body1.get_coincidence_transform_2(body2)
-            if result:
+            if is_two_body_equal(body1, body2):
                 unique_bodies[-1].append(body2)
             else:
                 remain_bodies.append(body2)
