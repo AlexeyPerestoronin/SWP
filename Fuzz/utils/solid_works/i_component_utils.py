@@ -1,10 +1,9 @@
 import re
-from typing import TypeAlias, List
+from typing import TypeAlias, List, Optional
 from pyswx.api.sldworks.interfaces import IComponent2, IBodyFolder, IBody2
 from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
 
 from .i_model_doc_utils import ValidModelName, validate_and_parse_model_name
-from . import i_body_folder_utils
 from . import i_feature_utils
 
 __all__ = [
@@ -36,7 +35,7 @@ def validate_and_parse_component_name(component: IComponent2) -> ValidComponentN
     """
     Validate and parse name of the SW-IComponent2.
     """
-        
+
     try:
         # 'Стол-Письменный-Швейный-Каркас-34'
         component_name = component.name2
@@ -69,13 +68,13 @@ def get_solid_body_folders_in_component(component: IComponent2, use_cache: bool 
     return cached_folders
 
 
-def detect_folder_for_body_in_component(component: IComponent2, body: IBody2, use_cache: bool = True) -> str:
+def detect_folder_for_body_in_component(component: IComponent2, body: IBody2, use_cache: bool = True) -> Optional[str]:
     """
     Detect the containing body folder for a given body in the component.
     """
     folders = get_solid_body_folders_in_component(component, use_cache)
     for folder in folders:
-        for body_in_folder in i_body_folder_utils.get_bodies_in_folder(folder, use_cache):
+        for body_in_folder in folder.get_bodies():
             if body_in_folder.name == body.name:
                 folder_type = folder.type
                 folder_name = folder.get_feature().name
@@ -85,5 +84,5 @@ def detect_folder_for_body_in_component(component: IComponent2, body: IBody2, us
                     return folder_name
                 else:
                     raise Exception(f"body '{body.name}' is found in unexpected folder: folder's type is {folder_type}, name is '{folder_name}'")
-    raise Exception(f"cannot detect folder for the body '{body.name}': list of component's folders is {[folder.get_feature().name for folder in folders]}")
-
+    raise Exception(
+        f"cannot detect folder for the body '{body.name}' in the component '{component.name2}': list of component's folders is {[folder.get_feature().name for folder in folders]}")

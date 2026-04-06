@@ -52,6 +52,7 @@ class UniqueBodiesManager:
     def unique_bodies(self) -> UniqueBodies:
         return self.__unique_bodies
 
+
 def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2], use_cache: bool) -> List[Tuple[pathlib.Path, IBody2, int]]:
     """
     TODO: need to provide some comment...
@@ -145,29 +146,60 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
     save_paths_and_bodies: List[Tuple[IBody2, pathlib.Path]] = []
     for same_bodies in unique_bodies_manager.unique_bodies:
         new_representative_body = same_bodies[0][0]
-        bodies_names_set: Set[str] = set()
-        models_names_set: Set[str] = set()
         assembly_names_set: Set[str] = set()
+        models_names_set: Set[str] = set()
+        folders_names_set: Set[str] = set()
+        bodies_names_set: Set[str] = set()
         utils.STATUS.log_line("Detected next same bodies:")
         for same_body in same_bodies:
             (body, component) = same_body
             utils.STATUS.log_line(f"* body '{body.name}' in component '{component.name2}'")
             bodies_names_set.add(utils.validate_and_parse_body_name(body).main_name)
+            body_folder = utils.detect_folder_for_body_in_component(component, body)
+            if body_folder:
+                folders_names_set.add(body_folder)
             valid_model_name = utils.validate_and_parse_component_name(component).valid_model_name
             models_names_set.add(valid_model_name.model_name)
             if valid_model_name.assembly_name:
                 assembly_names_set.add(valid_model_name.assembly_name)
-        assembly_name = '+'.join(assembly_names_set)
-        model_name = '+'.join(models_names_set)
-        body_name = '+'.join(bodies_names_set)
-        quantity = len(same_bodies)
-        new_save_path = pathlib.Path(save_folder).with_name(f"{assembly_name} {model_name} {body_name} [{quantity}]").with_suffix(".step")
+
+        step_file_name = "{assembly_name} {model_name} {folder_name} {body_name} [{quantity}]".format(
+            assembly_name='+'.join(assembly_names_set),
+            model_name='+'.join(models_names_set),
+            folder_name='+'.join(folders_names_set),
+            body_name='+'.join(bodies_names_set),
+            quantity=len(same_bodies),
+        )\
+        .replace('  ', ' ', -1)\
+        .strip()
+
+        new_save_path = pathlib.Path(save_folder) / pathlib.Path(step_file_name).with_suffix(".step")
         for (save_path, representative_body) in save_paths_and_bodies:
             if new_save_path == save_path:
                 raise Exception(f"step path '{new_save_path}' for rep-body '{new_representative_body.name}' is already reserved by body '{representative_body.name}'")
         utils.STATUS.log_line(f"+ they common save path is '{new_save_path}'")
         save_paths_and_bodies.append((new_representative_body, new_save_path))
 
+        if len(save_paths_and_bodies) > 1:
+            break
+
+    if execute:
+        save_folder.mkdir(parents=True, exist_ok=True)
+        for component in save_folder.iterdir():
+            component.unlink(missing_ok=True)
+
+        for (body, step_path) in save_paths_and_bodies:
+            try:
+                root_assembly.clear_selection2(True)
+                assert body.select_2(False)
+                root_assembly.extension.save_as_3(name=step_path,
+                                                  version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
+                                                  options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
+                                                  export_data=None,
+                                                  advanced_save_as_options=None)
+                utils.SUCCESS.log_line(f"step file created: {step_path}")
+            except Exception as error:
+                utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
 
 
 collection = invoke.Collection()

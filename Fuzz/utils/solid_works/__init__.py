@@ -9,7 +9,6 @@ from ..logger import STATUS
 
 from .i_model_doc_utils import *
 from .i_body_utils import *
-from .i_body_folder_utils import *
 from .i_feature_utils import *
 from .i_component_utils import *
 
@@ -19,7 +18,6 @@ __all__ = [
     # sub modules
     *i_model_doc_utils.__all__,
     *i_body_utils.__all__,
-    *i_body_folder_utils.__all__,
     *i_feature_utils.__all__,
     *i_component_utils.__all__,
 ]

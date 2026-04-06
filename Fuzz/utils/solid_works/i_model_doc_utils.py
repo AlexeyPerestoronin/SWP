@@ -3,7 +3,6 @@ from typing import TypeAlias, List, Optional
 from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
 from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
 
-from . import i_body_folder_utils
 from . import i_feature_utils
 
 __all__ = [
@@ -65,7 +64,7 @@ def detect_folder_for_body_in_model(model: IModelDoc2, body: IBody2, use_cache: 
     """
     folders = get_solid_body_folders_in_model(model, use_cache)
     for folder in folders:
-        for body_in_folder in i_body_folder_utils.get_bodies_in_folder(folder, use_cache):
+        for body_in_folder in folder.get_bodies():
             if body_in_folder.name == body.name:
                 folder_type = folder.type
                 folder_name = folder.get_feature().name
