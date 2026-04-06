@@ -26,7 +26,7 @@
             "cwd": "${workspaceFolder}/Fuzz",
             "args": [
                 "export.step-from-assembly",
-                //"--execute",
+                "--execute",
                 "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный.SLDASM",
                 "--save-subfolder", "STEP",
             ],

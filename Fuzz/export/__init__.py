@@ -143,22 +143,23 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
     if save_subfolder:
         save_folder = save_folder / pathlib.Path(save_subfolder)
 
-    save_paths_and_bodies: List[Tuple[IBody2, pathlib.Path]] = []
-    for same_bodies in unique_bodies_manager.unique_bodies:
-        new_representative_body = same_bodies[0][0]
+    save_paths_and_bodies: List[Tuple[IBody2, IComponent2, pathlib.Path]] = []
+    # TODO: need to remove [5:6]
+    for same_bodies in unique_bodies_manager.unique_bodies[5:6]:
+        (reference_body, reference_component) = same_bodies[0]
         assembly_names_set: Set[str] = set()
         models_names_set: Set[str] = set()
         folders_names_set: Set[str] = set()
         bodies_names_set: Set[str] = set()
-        utils.STATUS.log_line("Detected next same bodies:")
+        utils.STATUS.log_line(f"Detected {len(same_bodies)} same bodies:")
         for same_body in same_bodies:
-            (body, component) = same_body
-            utils.STATUS.log_line(f"* body '{body.name}' in component '{component.name2}'")
+            (body, reference_component) = same_body
+            utils.STATUS.log_line(f"* body '{body.name}' in component '{reference_component.name2}'")
             bodies_names_set.add(utils.validate_and_parse_body_name(body).main_name)
-            body_folder = utils.detect_folder_for_body_in_component(component, body)
+            body_folder = utils.detect_folder_for_body_in_component(reference_component, body)
             if body_folder:
                 folders_names_set.add(body_folder)
-            valid_model_name = utils.validate_and_parse_component_name(component).valid_model_name
+            valid_model_name = utils.validate_and_parse_component_name(reference_component).valid_model_name
             models_names_set.add(valid_model_name.model_name)
             if valid_model_name.assembly_name:
                 assembly_names_set.add(valid_model_name.assembly_name)
@@ -174,29 +175,52 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
         .strip()
 
         new_save_path = pathlib.Path(save_folder) / pathlib.Path(step_file_name).with_suffix(".step")
-        for (save_path, representative_body) in save_paths_and_bodies:
+        for (body, _, save_path) in save_paths_and_bodies:
             if new_save_path == save_path:
-                raise Exception(f"step path '{new_save_path}' for rep-body '{new_representative_body.name}' is already reserved by body '{representative_body.name}'")
-        utils.STATUS.log_line(f"+ they common save path is '{new_save_path}'")
-        save_paths_and_bodies.append((new_representative_body, new_save_path))
+                raise Exception(f"step path '{new_save_path}' for rep-body '{reference_body.name}' is already reserved by body '{body.name}'")
 
-        if len(save_paths_and_bodies) > 1:
-            break
+        conf_name = reference_component.referenced_configuration
+        model = reference_component.get_model_doc2()
+        target_configuration = model.get_configuration_by_name(conf_name)
+        # active_configuration = model.configuration_manager.active_configuration
+        active_component = target_configuration.get_root_component3(True)
+        bodies_in_root_model = active_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
+        body_in_root_model = None
+        for root_mode_body in bodies_in_root_model:
+            if utils.is_two_body_equal(root_mode_body, body):
+                body_in_root_model = root_mode_body
+                break
+        if not body_in_root_model:
+            raise Exception(f"cannot detect root-body in root-model for reference-body '{body.name}'")
+            
+        save_paths_and_bodies.append((reference_body, reference_component, new_save_path))
+        utils.STATUS.log_line(f"+ they common save path is '{new_save_path}'")
 
     if execute:
         save_folder.mkdir(parents=True, exist_ok=True)
-        for component in save_folder.iterdir():
-            component.unlink(missing_ok=True)
+        for reference_component in save_folder.iterdir():
+            reference_component.unlink(missing_ok=True)
 
-        for (body, step_path) in save_paths_and_bodies:
+        for (body, reference_component, step_path) in save_paths_and_bodies:
             try:
                 root_assembly.clear_selection2(True)
-                assert body.select_2(False)
-                root_assembly.extension.save_as_3(name=step_path,
-                                                  version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
-                                                  options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
-                                                  export_data=None,
-                                                  advanced_save_as_options=None)
+                model = reference_component.get_model_doc2()
+                target_configuration = model.configuration_manager.active_configuration.get_root_component3(True)
+                bodies_in_root_model = target_configuration.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
+                body_in_root_model = None
+                for root_mode_body in bodies_in_root_model:
+                    if utils.is_two_body_equal(root_mode_body, body):
+                        body_in_root_model = root_mode_body
+                        break
+                if not body_in_root_model:
+                    raise Exception(f"cannot detect root-body in root-model for reference-body '{body.name}'")
+                model.clear_selection2(True)
+                body_in_root_model.select_2(False)
+                model.extension.save_as_3(name=step_path,
+                                                version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
+                                                options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
+                                                export_data=None,
+                                                advanced_save_as_options=None)
                 utils.SUCCESS.log_line(f"step file created: {step_path}")
             except Exception as error:
                 utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
