@@ -1,6 +1,6 @@
 import invoke, pathlib
 from typing import List, Tuple, Set, TypeAlias
-from pyswx.api.sldworks.interfaces import IAssemblyDoc, IModelDoc2, IComponent2, IBody2, IBodyFolder
+from pyswx.api.sldworks.interfaces import IAssemblyDoc, IModelDoc2, IComponent2, IBody2
 from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWSaveAsOptionsE, SWSaveAsVersionE, SWBodyTypeE
 
 import utils
@@ -29,7 +29,7 @@ class UniqueBodiesManager:
                 raise Exception(f"unexpected type of mode: f{component_type}")
 
     def add_from_model(self, model: IModelDoc2):
-        component = model.configuration_manager.active_configuration.get_root_component3(True)
+        component = model.configuration_manager.active_configuration.get_root_component3(False)
         self.add_from_component(component)
 
     def add_from_component(self, component: IComponent2):
@@ -99,7 +99,7 @@ def step_from_part(ctx, path: str = None, save_subfolder: str = None, execute: b
     save_folder = root_model.get_path_name().parent
     if save_subfolder:
         save_folder = save_folder / pathlib.Path(save_subfolder)
-    component = root_model.configuration_manager.active_configuration.get_root_component3(True)
+    component = root_model.configuration_manager.active_configuration.get_root_component3(False)
     bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
     save_paths_and_bodies = make_common_save_path_for_unique_bodies(root_model, save_folder, bodies, True)
     for (step_path, body, quantity) in save_paths_and_bodies:
@@ -134,7 +134,7 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
     """
     check.project_naming(ctx, path)
 
-    root_assembly = IAssemblyDoc(utils.open_document(path, SWDocumentTypesE.SW_DOC_ASSEMBLY).root_model.com_object)
+    root_assembly = utils.open_document(path, SWDocumentTypesE.SW_DOC_ASSEMBLY).root_assembly
 
     unique_bodies_manager = UniqueBodiesManager()
     unique_bodies_manager.add_from_assembly(root_assembly)
@@ -196,7 +196,7 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
                         raise Exception(f"cannot show and activate '{target_configuration_name}'-configuration in '{root_model.get_path_name().name}'-model")
                     active_configuration = root_model.configuration_manager.active_configuration
 
-                root_component = active_configuration.get_root_component3(True)
+                root_component = active_configuration.get_root_component3(False)
                 root_bodies = root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
                 for root_body in root_bodies:
                     if utils.is_two_body_equal(root_body, reference_body):

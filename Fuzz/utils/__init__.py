@@ -1,6 +1,7 @@
 import re, difflib, functools
-from typing import List, Tuple, Optional
-from pyswx.api.sldworks.interfaces import IModelDoc2, IBody2, IBodyFolder
+
+from typing import List
+from pyswx.api.sldworks.interfaces import IModelDoc2, IBodyFolder
 
 from .logger import *
 from .solid_works import *
