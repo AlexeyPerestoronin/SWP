@@ -11,7 +11,7 @@ __all__ = [
 
 class UniqueBodiesManager:
     """
-    TODO: need to provide short comment
+    Manager to track unique groups of identical solid bodies for STEP export.
     """
     SameBodies: TypeAlias = List[Tuple[IBody2, IComponent2]]
     UniqueBodies: TypeAlias = List[SameBodies]
@@ -21,7 +21,7 @@ class UniqueBodiesManager:
 
     def add_from_assembly(self, assembly: IAssemblyDoc):
         """
-        TODO: need to provide short comment
+        Recursively add solid bodies from assembly components (parts/assemblies).
         """
         components = assembly.get_components(True)
         while len(components) > 0:
@@ -38,14 +38,14 @@ class UniqueBodiesManager:
 
     def add_from_model(self, model: IModelDoc2):
         """
-        TODO: need to provide short comment
+        Add solid bodies from model root component.
         """
         component = model.configuration_manager.active_configuration.get_root_component3(False)
         self.add_from_component(component)
 
     def add_from_component(self, component: IComponent2):
         """
-        TODO: need to provide short comment
+        Add bodies from component, merging with existing equal groups.
         """
         bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
         equal_bodies_groups = i_body_utils.get_equal_bodies_groups(bodies)
@@ -65,6 +65,6 @@ class UniqueBodiesManager:
     @property
     def unique_bodies(self) -> UniqueBodies:
         """
-        TODO: need to provide short comment
+        Get list of unique body groups (each: list of (body, component) tuples).
         """
         return self.__unique_bodies

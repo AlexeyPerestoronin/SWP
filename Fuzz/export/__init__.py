@@ -6,12 +6,13 @@ from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWSaveAsOptionsE, S
 import utils
 import check
 
-
 SavingGroup: TypeAlias = Tuple[IBody2, IComponent2, pathlib.Path]
 SavingGroups: TypeAlias = List[SavingGroup]
+
+
 def prepare_saving_groups(unique_bodies: utils.UniqueBodiesManager.UniqueBodies, save_folder: pathlib.Path) -> SavingGroups:
     """
-    TODO: need to provide short comment
+    Prepare unique STEP export paths for groups of identical bodies across components.
     """
     result: SavingGroups = []
     for same_bodies in unique_bodies:
@@ -64,7 +65,6 @@ def prepare_saving_groups(unique_bodies: utils.UniqueBodiesManager.UniqueBodies,
 def step_from_part(ctx, path: str = None, save_subfolder: str = None, execute: bool = False):
     """
     Mass exporting of SW-solid-bodies in unique step-files.
-    Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
     """
     check.project_naming(ctx, path)
 

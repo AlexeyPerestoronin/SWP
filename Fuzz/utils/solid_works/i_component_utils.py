@@ -89,7 +89,7 @@ def detect_folder_for_body_in_component(component: IComponent2, body: IBody2, us
 
 def save_body_from_component_like_step(component: IComponent2, body: IBody2, step_save_path: pathlib.Path):
     """
-    TODO: need to provide short comment
+    Export a specific body from component as STEP file by matching equivalent root body.
     """
     try:
         root_model = component.get_model_doc2()
