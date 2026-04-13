@@ -96,7 +96,7 @@ def save_body_from_component_like_step(component: IComponent2, body: IBody2, ste
         active_configuration = root_model.configuration_manager.active_configuration
         active_configuration_name = active_configuration.name
         target_configuration_name = component.referenced_configuration
-        if target_configuration_name != active_configuration_name:
+        if target_configuration_name and target_configuration_name != active_configuration_name:
             if root_model.show_configuration2(target_configuration_name) is False:
                 raise Exception(f"cannot show and activate '{target_configuration_name}'-configuration in '{root_model.get_path_name().name}'-model")
             active_configuration = root_model.configuration_manager.active_configuration

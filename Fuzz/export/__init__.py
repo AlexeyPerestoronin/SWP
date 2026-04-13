@@ -1,5 +1,5 @@
 import invoke, pathlib
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, TypeAlias
 from pyswx.api.sldworks.interfaces import IModelDoc2, IComponent2, IBody2
 from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWSaveAsOptionsE, SWSaveAsVersionE, SWBodyTypeE
 
@@ -7,98 +7,14 @@ import utils
 import check
 
 
-def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2], use_cache: bool) -> List[Tuple[pathlib.Path, IBody2, int]]:
+SavingGroup: TypeAlias = Tuple[IBody2, IComponent2, pathlib.Path]
+SavingGroups: TypeAlias = List[SavingGroup]
+def prepare_saving_groups(unique_bodies: utils.UniqueBodiesManager.UniqueBodies, save_folder: pathlib.Path) -> SavingGroups:
     """
-    TODO: need to provide some comment...
+    TODO: need to provide short comment
     """
-    model_name = parent_model.get_path_name().stem
-    results: List[Tuple[pathlib.Path, IBody2, int]] = []
-    unique_bodies_sets = utils.get_equal_bodies_groups(bodies)
-    for unique_bodies_set in unique_bodies_sets:
-        utils.STATUS.log_line(f"detected {len(unique_bodies_set)} unique bodies {[body.name for body in unique_bodies_set]}")
-        quantity = len(unique_bodies_set)
-        common_name = ' + '.join(set([utils.validate_and_parse_body_name(body).main_name for body in unique_bodies_set]))
-        representative_body = unique_bodies_set[0]
-        body_folder_name = utils.detect_folder_for_body_in_model(parent_model, representative_body, use_cache) if '+' not in common_name else None
-        if body_folder_name:
-            step_file_name = pathlib.Path(f"{model_name} {body_folder_name} {common_name}")
-        else:
-            step_file_name = pathlib.Path(f"{model_name} {common_name}")
-        common_save_path = save_folder / step_file_name
-        for (save_path, save_body, _) in results:
-            if common_save_path == save_path:
-                raise Exception(f"step path '{common_save_path}' for rep-body '{representative_body.name}' is already reserved by body '{save_body.name}'")
-        results.append((common_save_path, representative_body, quantity))
-    return results
-
-
-@invoke.task(
-    help={
-        "path": "path to SW-part-project which bodies should be saved as *.step",
-        "save-subfolder": "subfolder in model-folder where step filles should be saved (default is None = in the root folder of the SW-project)",
-        "execute": "if True unique solid-body will be saved in corresponded step-file, otherwise only log (be default: False)",
-    })
-def step_from_part(ctx, path: str = None, save_subfolder: str = None, execute: bool = False):
-    """
-    Mass exporting of SW-solid-bodies in unique step-files.
-    Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
-    """
-    check.project_naming(ctx, path)
-    check.folders_naming(ctx, path)
-    check.bodies_naming(ctx, path)
-
-    root_model = utils.open_document(path, SWDocumentTypesE.SW_DOC_PART).root_model
-    assert root_model
-
-    save_folder = root_model.get_path_name().parent
-    if save_subfolder:
-        save_folder = save_folder / pathlib.Path(save_subfolder)
-    component = root_model.configuration_manager.active_configuration.get_root_component3(False)
-    bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
-    save_paths_and_bodies = make_common_save_path_for_unique_bodies(root_model, save_folder, bodies, True)
-    for (step_path, body, quantity) in save_paths_and_bodies:
-        step_path = step_path.with_name(f"{step_path.stem} [{quantity}]").with_suffix(".step")
-        if execute:
-            try:
-                root_model.clear_selection2(True)
-                assert body.select_2(False)
-                step_path.parent.mkdir(parents=True, exist_ok=True)
-                root_model.extension.save_as_3(name=step_path,
-                                               version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
-                                               options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
-                                               export_data=None,
-                                               advanced_save_as_options=None)
-                utils.SUCCESS.log_line(f"step file created: {step_path}")
-            except Exception as error:
-                utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
-        else:
-            utils.INFO.log_line(f"defined path for unique solid-body: {step_path}")
-
-
-@invoke.task(
-    help={
-        "path": "path to SW-assembly-project which bodies should be saved as *.step",
-        "save-subfolder": "subfolder in model-folder where step filles should be saved (default is None = in the root folder of the SW-project)",
-        "execute": "if True unique solid-body will be saved in corresponded step-file, otherwise only log (be default: False)",
-    })
-def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execute: bool = False):
-    """
-    Mass exporting of SW-solid-bodies in unique step-files.
-    Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
-    """
-    check.project_naming(ctx, path)
-
-    root_assembly = utils.open_document(path, SWDocumentTypesE.SW_DOC_ASSEMBLY).root_assembly
-
-    unique_bodies_manager = utils.UniqueBodiesManager()
-    unique_bodies_manager.add_from_assembly(root_assembly)
-
-    save_folder = root_assembly.get_path_name().parent
-    if save_subfolder:
-        save_folder = save_folder / pathlib.Path(save_subfolder)
-
-    save_paths_and_bodies: List[Tuple[IBody2, IComponent2, pathlib.Path]] = []
-    for same_bodies in unique_bodies_manager.unique_bodies:
+    result: SavingGroups = []
+    for same_bodies in unique_bodies:
         (reference_body, reference_component) = same_bodies[0]
         assembly_names_set: Set[str] = set()
         models_names_set: Set[str] = set()
@@ -109,7 +25,10 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
             (reference_body, reference_component) = same_body
             utils.STATUS.log_line(f"* body '{reference_body.name}' in component '{reference_component.name2}'")
             bodies_names_set.add(utils.validate_and_parse_body_name(reference_body).main_name)
-            body_folder = utils.detect_folder_for_body_in_component(reference_component, reference_body)
+            if not reference_component.referenced_configuration:
+                body_folder = utils.detect_folder_for_body_in_model(reference_component.get_model_doc2(), reference_body)
+            else:
+                body_folder = utils.detect_folder_for_body_in_component(reference_component, reference_body)
             if body_folder:
                 folders_names_set.add(body_folder)
             valid_model_name = utils.validate_and_parse_component_name(reference_component).valid_model_name
@@ -127,12 +46,74 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
         .replace('  ', ' ', -1)\
         .strip()
 
-        new_save_path = pathlib.Path(save_folder) / pathlib.Path(step_file_name).with_suffix(".step")
-        for (body, _, save_path) in save_paths_and_bodies:
+        new_save_path = save_folder / pathlib.Path(step_file_name).with_suffix(".step")
+        for (body, _, save_path) in result:
             if new_save_path == save_path:
                 raise Exception(f"step path '{new_save_path}' for rep-body '{reference_body.name}' is already reserved by body '{body.name}'")
-        save_paths_and_bodies.append((reference_body, reference_component, new_save_path))
+        result.append((reference_body, reference_component, new_save_path))
         utils.STATUS.log_line(f"+ they common save path is '{new_save_path}'")
+    return result
+
+
+@invoke.task(
+    help={
+        "path": "path to SW-part-project which bodies should be saved as *.step",
+        "save-subfolder": "subfolder in model-folder where step filles should be saved (default is None = in the root folder of the SW-project)",
+        "execute": "if True unique solid-body will be saved in corresponded step-file, otherwise only log (be default: False)",
+    })
+def step_from_part(ctx, path: str = None, save_subfolder: str = None, execute: bool = False):
+    """
+    Mass exporting of SW-solid-bodies in unique step-files.
+    Note: for each solid-body will be created unique file in same directory with the SW-project: <Name of SW-part-project> <Name of solid-body>.step
+    """
+    check.project_naming(ctx, path)
+
+    root_model = utils.open_document(path, SWDocumentTypesE.SW_DOC_PART).root_model
+
+    unique_bodies_manager = utils.UniqueBodiesManager()
+    unique_bodies_manager.add_from_model(root_model)
+
+    save_folder = root_model.get_path_name().parent
+    if save_subfolder:
+        save_folder = save_folder / pathlib.Path(save_subfolder)
+
+    save_paths_and_bodies = prepare_saving_groups(unique_bodies_manager.unique_bodies, save_folder)
+
+    if execute:
+        save_folder.mkdir(parents=True, exist_ok=True)
+        for reference_component in save_folder.iterdir():
+            reference_component.unlink(missing_ok=True)
+
+        for (reference_body, reference_component, step_path) in save_paths_and_bodies:
+            try:
+                utils.save_body_from_component_like_step(reference_component, reference_body, step_path)
+                utils.SUCCESS.log_line(f"step file created: {step_path}")
+            except Exception as error:
+                utils.ERROR.log_line(f"step file wasn't created: {error}")
+
+
+@invoke.task(
+    help={
+        "path": "path to SW-assembly-project which bodies should be saved as *.step",
+        "save-subfolder": "subfolder in model-folder where step filles should be saved (default is None = in the root folder of the SW-project)",
+        "execute": "if True unique solid-body will be saved in corresponded step-file, otherwise only log (be default: False)",
+    })
+def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execute: bool = False):
+    """
+    Mass exporting of SW-solid-bodies in unique step-files.
+    """
+    check.project_naming(ctx, path)
+
+    root_assembly = utils.open_document(path, SWDocumentTypesE.SW_DOC_ASSEMBLY).root_assembly
+
+    unique_bodies_manager = utils.UniqueBodiesManager()
+    unique_bodies_manager.add_from_assembly(root_assembly)
+
+    save_folder = root_assembly.get_path_name().parent
+    if save_subfolder:
+        save_folder = save_folder / pathlib.Path(save_subfolder)
+
+    save_paths_and_bodies = prepare_saving_groups(unique_bodies_manager.unique_bodies, save_folder)
 
     if execute:
         save_folder.mkdir(parents=True, exist_ok=True)
