@@ -1,16 +1,17 @@
-import re
+import re, pathlib
 from typing import TypeAlias, List, Optional
 from pyswx.api.sldworks.interfaces import IComponent2, IBodyFolder, IBody2
-from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE
+from pyswx.api.swconst.enumerations import SWBodyFolderFeatureTypE, SWBodyTypeE, SWSaveAsOptionsE, SWSaveAsVersionE
 
 from .i_model_doc_utils import ValidModelName, validate_and_parse_model_name
-from . import i_feature_utils
+from . import i_feature_utils, i_body_utils
 
 __all__ = [
     'ValidComponentName',
     'validate_and_parse_component_name',
     'get_solid_body_folders_in_component',
     'detect_folder_for_body_in_component',
+    'save_body_from_component_like_step',
 ]
 
 
@@ -35,9 +36,7 @@ def validate_and_parse_component_name(component: IComponent2) -> ValidComponentN
     """
     Validate and parse name of the SW-IComponent2.
     """
-
     try:
-        # 'Стол-Письменный-Швейный-Каркас-34'
         component_name = component.name2
         valid_model_name = validate_and_parse_model_name(component.get_model_doc2())
         try:
@@ -86,3 +85,34 @@ def detect_folder_for_body_in_component(component: IComponent2, body: IBody2, us
                     raise Exception(f"body '{body.name}' is found in unexpected folder: folder's type is {folder_type}, name is '{folder_name}'")
     raise Exception(
         f"cannot detect folder for the body '{body.name}' in the component '{component.name2}': list of component's folders is {[folder.get_feature().name for folder in folders]}")
+
+
+def save_body_from_component_like_step(component: IComponent2, body: IBody2, step_save_path: pathlib.Path):
+    """
+    TODO: need to provide short comment
+    """
+    try:
+        root_model = component.get_model_doc2()
+        active_configuration = root_model.configuration_manager.active_configuration
+        active_configuration_name = active_configuration.name
+        target_configuration_name = component.referenced_configuration
+        if target_configuration_name != active_configuration_name:
+            if root_model.show_configuration2(target_configuration_name) is False:
+                raise Exception(f"cannot show and activate '{target_configuration_name}'-configuration in '{root_model.get_path_name().name}'-model")
+            active_configuration = root_model.configuration_manager.active_configuration
+
+        root_component = active_configuration.get_root_component3(False)
+        root_bodies = root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
+        for root_body in root_bodies:
+            if i_body_utils.is_two_body_equal(root_body, body):
+                root_model.clear_selection2(True)
+                root_body.select_2(False)
+                root_model.extension.save_as_3(name=step_save_path,
+                                               version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
+                                               options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
+                                               export_data=None,
+                                               advanced_save_as_options=None)
+                return
+        raise Exception(f"cannot detect root-body in root-model for reference-body '{body.name}'")
+    except Exception as error:
+        raise Exception(f"cannot save '{body.name}'-body in step file '{step_save_path}': {error}")

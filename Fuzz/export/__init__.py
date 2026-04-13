@@ -141,33 +141,10 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
 
         for (reference_body, reference_component, step_path) in save_paths_and_bodies:
             try:
-                root_model = reference_component.get_model_doc2()
-                active_configuration = root_model.configuration_manager.active_configuration
-                active_configuration_name = active_configuration.name
-                target_configuration_name = reference_component.referenced_configuration
-                if target_configuration_name != active_configuration_name:
-                    if root_model.show_configuration2(target_configuration_name) is False:
-                        raise Exception(f"cannot show and activate '{target_configuration_name}'-configuration in '{root_model.get_path_name().name}'-model")
-                    active_configuration = root_model.configuration_manager.active_configuration
-
-                root_component = active_configuration.get_root_component3(False)
-                root_bodies = root_component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
-                for root_body in root_bodies:
-                    if utils.is_two_body_equal(root_body, reference_body):
-                        root_model.clear_selection2(True)
-                        root_body.select_2(False)
-                        root_model.extension.save_as_3(name=step_path,
-                                                       version=SWSaveAsVersionE.SW_SAVE_AS_CURRENT_VERSION,
-                                                       options=SWSaveAsOptionsE.SW_SAVE_AS_OPTIONS_SILENT,
-                                                       export_data=None,
-                                                       advanced_save_as_options=None)
-                        utils.SUCCESS.log_line(f"step file created: {step_path}")
-                        is_saved = True
-                        break
-                if is_saved is False:
-                    raise Exception(f"cannot detect root-body in root-model for reference-body '{reference_body.name}'")
+                utils.save_body_from_component_like_step(reference_component, reference_body, step_path)
+                utils.SUCCESS.log_line(f"step file created: {step_path}")
             except Exception as error:
-                utils.ERROR.log_line(f"cannot create step file '{step_path}': {error}")
+                utils.ERROR.log_line(f"step file wasn't created: {error}")
 
 
 collection = invoke.Collection()
