@@ -1,56 +1,10 @@
 import invoke, pathlib
-from typing import List, Tuple, Set, TypeAlias
-from pyswx.api.sldworks.interfaces import IAssemblyDoc, IModelDoc2, IComponent2, IBody2
+from typing import List, Tuple, Set
+from pyswx.api.sldworks.interfaces import IModelDoc2, IComponent2, IBody2
 from pyswx.api.swconst.enumerations import SWDocumentTypesE, SWSaveAsOptionsE, SWSaveAsVersionE, SWBodyTypeE
 
 import utils
 import check
-
-
-class UniqueBodiesManager:
-    SameBodies: TypeAlias = List[Tuple[IBody2, IComponent2]]
-    UniqueBodies: TypeAlias = List[SameBodies]
-
-    def __init__(self):
-        self.__unique_bodies: UniqueBodiesManager.UniqueBodies = []
-
-    def add_from_assembly(self, assembly: IAssemblyDoc):
-        components = assembly.get_components(True)
-        while len(components) > 0:
-            component = components.pop(0)
-            print(f"component name is '{component.name2}'")
-            component_type = component.get_type()
-            if component_type == SWDocumentTypesE.SW_DOC_PART:
-                self.add_from_component(component)
-            elif component_type == SWDocumentTypesE.SW_DOC_ASSEMBLY:
-                for sub_component in component.get_children():
-                    components.append(sub_component)
-            else:
-                raise Exception(f"unexpected type of mode: f{component_type}")
-
-    def add_from_model(self, model: IModelDoc2):
-        component = model.configuration_manager.active_configuration.get_root_component3(False)
-        self.add_from_component(component)
-
-    def add_from_component(self, component: IComponent2):
-        bodies = component.get_bodies2(SWBodyTypeE.SW_SOLID_BODY)
-        equal_bodies_groups = utils.get_equal_bodies_groups(bodies)
-        for equal_bodies_group in equal_bodies_groups:
-            same_bodies_from_equal_group: UniqueBodiesManager.SameBodies = [(body, component) for body in equal_bodies_group]
-            equal_group_reference_body = equal_bodies_group[0]
-            added = False
-            for same_bodies in self.__unique_bodies:
-                reference_body_in_same_group = same_bodies[0][0]
-                if utils.is_two_body_equal(reference_body_in_same_group, equal_group_reference_body):
-                    same_bodies.extend(same_bodies_from_equal_group)
-                    added = True
-                    break
-            if not added:
-                self.__unique_bodies.append(same_bodies_from_equal_group)
-
-    @property
-    def unique_bodies(self) -> UniqueBodies:
-        return self.__unique_bodies
 
 
 def make_common_save_path_for_unique_bodies(parent_model: IModelDoc2, save_folder: pathlib.Path, bodies: List[IBody2], use_cache: bool) -> List[Tuple[pathlib.Path, IBody2, int]]:
@@ -136,7 +90,7 @@ def step_from_assembly(ctx, path: str = None, save_subfolder: str = None, execut
 
     root_assembly = utils.open_document(path, SWDocumentTypesE.SW_DOC_ASSEMBLY).root_assembly
 
-    unique_bodies_manager = UniqueBodiesManager()
+    unique_bodies_manager = utils.UniqueBodiesManager()
     unique_bodies_manager.add_from_assembly(root_assembly)
 
     save_folder = root_assembly.get_path_name().parent
