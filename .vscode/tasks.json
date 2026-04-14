@@ -23,23 +23,7 @@
             ]
         },
         {
-            "label": "sewing table frame: export.step-from-part",
-            "type": "shell",
-            "group": "none",
-            "command": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
-            "options": {
-                "cwd": "${workspaceFolder}/Fuzz"
-            },
-            "args": [
-                "export.step-from-part",
-                "--path",
-                "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT",
-                "--save-subfolder",
-                "STEP"
-            ],
-        },
-        {
-            "label": "sewing table frame: export.step-from-assembly",
+            "label": "Стол-Письменный-Швейный: export STEPs",
             "type": "shell",
             "group": "none",
             "command": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
@@ -52,6 +36,21 @@
                 "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный.SLDASM",
                 "--save-subfolder",
                 "STEP"
+            ],
+        },
+        {
+            "label": "Canopy-TI: export STEPs",
+            "type": "shell",
+            "group": "none",
+            "command": "${workspaceFolder}/Fuzz/.venv/Scripts/invoke.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/Fuzz"
+            },
+            "args": [
+                "export.step-from-assembly",
+                "--execute",
+                "--path", "${workspaceFolder}/Projects/МАСТЕРСКАЯ/Canopy/Canopy-TI.SLDASM",
+                "--save-subfolder", "STEP",
             ],
         }
     ]
