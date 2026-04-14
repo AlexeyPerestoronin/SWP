@@ -12,9 +12,9 @@
             "cwd": "${workspaceFolder}/Fuzz",
             "args": [
                 "export.step-from-part",
-                //"--execute",
-                "--path", "${workspaceFolder}/Projects/КВАРТИРА/Швейный стол/Стол-Письменный-Швейный-Каркас.SLDPRT",
-                "--save-subfolder", "STEP",
+                "--execute",
+                "--path", "${workspaceFolder}/Projects/МАСТЕРСКАЯ/Canopy/Крыша.SLDPRT",
+                "--save-subfolder", "STEP-3",
             ],
             "console": "integratedTerminal"
         },
@@ -28,7 +28,7 @@
                 "export.step-from-assembly",
                 "--execute",
                 "--path", "${workspaceFolder}/Projects/МАСТЕРСКАЯ/Canopy/Canopy-TI.SLDASM",
-                "--save-subfolder", "STEP",
+                "--save-subfolder", "STEP-1",
             ],
             "console": "integratedTerminal"
         }
