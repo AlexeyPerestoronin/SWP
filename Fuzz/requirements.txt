@@ -1,3 +1,0 @@
-invoke>=2.2.0           # Task execution and automation library
-yapf>=0.43.0            # need for auto formatting of python files
-colorama>=0.0.4         # Cross-platform colored terminal text
