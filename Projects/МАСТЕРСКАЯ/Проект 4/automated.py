@@ -2,11 +2,16 @@ import re
 import invoke
 import pathlib
 
+from typing import List, Tuple
 from pyswx.api.swconst.enumerations import SWDocumentTypesE
 from tabulate import tabulate
 
 import utils
 import check
+
+def make_md_tabla(data: List[Tuple[str, int]]):
+    sorted_data = sorted(data, key=lambda x: x[0])
+    return tabulate(sorted_data, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe")
 
 @invoke.task()
 def make_doc(ctx):
@@ -43,27 +48,54 @@ def make_doc(ctx):
 
         for (reference_body, quantity, reference_component, step_path) in save_paths_and_bodies:
             component_full_name = step_path.name
-            if bool(re.match(r"Гаражный-Комплекс.+?", component_full_name)):
-                # гаражный комплекс не сохраняется, т.к. это 3D-модель помещения
+
+            try_detect = lambda expression: bool(re.match(expression, component_full_name))
+
+            if try_detect(r"Гаражный-Комплекс.+?") \
+            or try_detect(r"Верстак-Dim1000x600x50 столешница") :
+                utils.INFO.log_line(f"detected DOC-unused step-file: {step_path}")
                 continue
-            if bool(re.match(r"Опорная-Колонна каркас-полочек.+?", component_full_name)) or bool(re.match(r"Профильный-Каркас Крепёжная-Планка планка", component_full_name)):
+
+            # profile_tube_50_25_2
+            elif try_detect(r"Опорная-Колонна каркас-полочек.+?") \
+              or try_detect(r"Профильный-Каркас Крепёжная-Планка планка"):
                 profile_tube_50_25_2.append([component_full_name, quantity])
-            elif bool(re.match(r"Опорная-Колонна (колонна|каркас-основания).*?", component_full_name)):
+
+            # profile_tube_50_50_4
+            elif try_detect(r"Опорная-Колонна (колонна|каркас-основания).*?") \
+              or try_detect(r"Перфорированная-Стяжка стяжка-\d+"):
                 profile_tube_50_50_4.append([component_full_name, quantity])
-            elif bool(re.match(r"Инженерная-Стенка Горизонтальный-Каркас г-опора", component_full_name)):
+
+            elif try_detect(r"Инженерная-Стенка Горизонтальный-Каркас г-опора"):
                 profile_tube_50_50_4.append([component_full_name, quantity])
-            elif bool(re.match(r"Опорная-Колонна кронштейн-потолочной-балки", component_full_name)) or bool(re.match(r"Профильный-Каркас Крепёжная-Планка крепёжное-окно", component_full_name)):
+
+            # steel_sheet_4
+            elif try_detect(r"Опорная-Колонна кронштейн-потолочной-балки") \
+              or try_detect(r"Опорная-Колонна кк-горизонтальной-балки") \
+              or try_detect(r"Профильный-Каркас Крепёжная-Планка крепёжное-окно") \
+              or try_detect(r"Перфорированная-Стяжка ушко"):
                 steel_sheet_4.append([component_full_name, quantity])
-            elif bool(re.match(r"Опорная-Колонна ккп-верхний", component_full_name)):
+
+            elif try_detect(r"Опорная-Колонна кк-полочки-верхний"):
                 # 5 (полочек для опоры) * 4 (опоры на верстаке) * 2 (верстака) = 40
                 steel_sheet_4.append([component_full_name, 40])
-            elif bool(re.match(r"Опорная-Колонна ккп-нижний", component_full_name)):
+
+            elif try_detect(r"Опорная-Колонна кк-полочки-нижний"):
                 # 5 (полочек на опоре) * 4 (опоры на верстаке) * 2 (верстака) = 40
                 steel_sheet_4.append([component_full_name, 40])
-            elif bool(re.match(r"Инженерная-Стенка Верстак.+?", component_full_name)):
-                steel_sheet_6.append([component_full_name, quantity])
+
+            # steel_sheet_6
+            elif try_detect(r"Верстак-Dim1000x600x50 т-элемент-6мм-3x3"):
+                steel_sheet_6.append([component_full_name, 10])
+
+            elif try_detect(r"Верстак-Dim1000x600x50 уголок-6мм-3x3"):
+                steel_sheet_6.append([component_full_name, 10])
+
+            elif try_detect(r"Верстак-Dim1000x600x50 квадрат-6мм-2x2"):
+                steel_sheet_6.append([component_full_name, 10])
+
             else:
-                utils.WARNING.log_line(f"detected DOC-undefined step-file: {step_path}")
+                utils.WARNING.log_line(f"detected DOC-unclassified step-file: {step_path}")
                 undefined.append([component_full_name, quantity])
 
             try:
@@ -83,22 +115,22 @@ def make_doc(ctx):
             "## Профильная труба 50x25x2мм",
             "[Справочная ссылка для материала](https://купитьметалл.рф/product/truba-pryamougol-50x25x2)",
             "",
-            tabulate(profile_tube_50_25_2, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe"),
+            make_md_tabla(profile_tube_50_25_2),
             "",
             "## Профильная труба 50x50x4мм",
             "[Справочная ссылка для материала](https://купитьметалл.рф/product/truba-kvadratnaya-50x50x4)",
             "",
-            tabulate(profile_tube_50_50_4, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe"),
+            make_md_tabla(profile_tube_50_50_4),
             "",
             "## Лист стальной горячекатанный 4мм",
             "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-4-st3sp-ps-5)",
             "",
-            tabulate(steel_sheet_4, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe"),
+            make_md_tabla(steel_sheet_4),
             "",
             "## Лист стальной горячекатанный 6мм",
             "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-6-st3sp-ps-5)",
             "",
-            tabulate(steel_sheet_6, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe"),
+            make_md_tabla(steel_sheet_6),
         ]
         
         if len(undefined) > 0:
