@@ -137,7 +137,7 @@ def make_doc(ctx):
             content.extend([
                     "",
                     "## Не учтённые элементы",
-                    tabulate(undefined, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe"),
+                    make_md_tabla(undefined),
                 ]
             )
 
