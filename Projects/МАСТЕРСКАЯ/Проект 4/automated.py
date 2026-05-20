@@ -58,7 +58,7 @@ def make_doc(ctx):
 
             # profile_tube_50_25_2
             elif try_detect(r"Опорная-Колонна каркас-полочек.+?") \
-              or try_detect(r"Профильный-Каркас Крепёжная-Планка планка"):
+              or try_detect(r"Профильный-Каркас Крепёжная-Планка планка-(левая|правая)"):
                 profile_tube_50_25_2.append([component_full_name, quantity])
 
             # profile_tube_50_50_4
