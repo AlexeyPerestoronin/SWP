@@ -2,5 +2,10 @@
 *.SLDPRT filter=lfs diff=lfs merge=lfs -text
 *.SLDASM filter=lfs diff=lfs merge=lfs -text
 
-# Archives
+# Premier Pro
+*.prin filter=lfs diff=lfs merge=lfs -text
+*.prproj filter=lfs diff=lfs merge=lfs -text
+
+# Others
 *.7z filter=lfs diff=lfs merge=lfs -text
+*.odt filter=lfs diff=lfs merge=lfs -text
