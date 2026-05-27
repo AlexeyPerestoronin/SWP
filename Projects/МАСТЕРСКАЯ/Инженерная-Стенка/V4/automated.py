@@ -62,7 +62,7 @@ def make_doc(ctx):
                 profile_tube_50_25_2.append([component_full_name, quantity])
 
             # profile_tube_50_50_4
-            elif try_detect(r"Опорная-Колонна (колонна|каркас-основания).*?") \
+            elif try_detect(r"Опорная-Колонна каркас (колонна|каркас-основания-(I|II|III))-(R|L)") \
               or try_detect(r"Перфорированная-Стяжка стяжка-\d+"):
                 profile_tube_50_50_4.append([component_full_name, quantity])
 
