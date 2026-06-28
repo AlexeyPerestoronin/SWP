@@ -53,7 +53,7 @@ def make_doc(ctx):
 
             if try_detect(r"Гаражный-Комплекс.+?") \
             or try_detect(r"Верстак-Dim1000x600x50 столешница") :
-                utils.INFO.log_line(f"detected DOC-unused step-file: {step_path}")
+                utils.info.log_line(f"detected DOC-unused step-file: {step_path}")
                 continue
 
             # profile_tube_50_25_2
@@ -95,14 +95,14 @@ def make_doc(ctx):
                 steel_sheet_6.append([component_full_name, 10])
 
             else:
-                utils.WARNING.log_line(f"detected DOC-unclassified step-file: {step_path}")
+                utils.warning.log_line(f"detected DOC-unclassified step-file: {step_path}")
                 undefined.append([component_full_name, quantity])
 
             try:
                 utils.save_body_from_component_like_step(reference_component, reference_body, step_path)
-                utils.SUCCESS.log_line(f"step file created: {step_path}")
+                utils.success.log_line(f"step file created: {step_path}")
             except Exception as error:
-                utils.ERROR.log_line(f"step file wasn't created: {error}")
+                utils.error.log_line(f"step file wasn't created: {error}")
 
         content = [
             "# Техническое задания на изготовление металлических деталей для «Инженерная Стенка» методом ЧПУ лазерной резки",
