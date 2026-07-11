@@ -9,9 +9,11 @@ from tabulate import tabulate
 import utils
 import check
 
+
 def make_md_tabla(data: List[Tuple[str, int]]):
     sorted_data = sorted(data, key=lambda x: x[0])
     return tabulate(sorted_data, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe")
+
 
 @invoke.task()
 def create_metal_tech_task(ctx):
@@ -74,14 +76,13 @@ def create_metal_tech_task(ctx):
             "",
             make_md_tabla(steel_sheet_4),
         ]
-        
+
         if len(undefined) > 0:
             content.extend([
-                    "",
-                    "## Не учтённые элементы",
-                    make_md_tabla(undefined),
-                ]
-            )
+                "",
+                "## Не учтённые элементы",
+                make_md_tabla(undefined),
+            ])
 
         doc_file = save_folder / pathlib.Path('README.md')
         with open(doc_file, "w", encoding="utf-8") as file:
