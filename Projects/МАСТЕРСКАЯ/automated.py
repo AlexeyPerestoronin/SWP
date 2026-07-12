@@ -36,7 +36,7 @@ def make_doc_for_workbench_1000_600(ctx, extended_content: bool = True):
     unique_bodies_manager.add_from_model(root_model)
 
     save_folder = project_path.with_name('DOC_for_workbench_1000x600')
-    save_paths_and_bodies = utils.prepare_saving_groups(unique_bodies_manager.unique_bodies, save_folder)
+    save_paths_and_bodies = utils.prepare_saving_groups_2(unique_bodies_manager.unique_bodies)
 
     execute = True
     if execute:
@@ -44,36 +44,51 @@ def make_doc_for_workbench_1000_600(ctx, extended_content: bool = True):
         for reference_component in save_folder.iterdir():
             reference_component.unlink(missing_ok=True)
 
+        steel_sheet_6mm = []
         steel_sheet_4mm = []
         undefined = []
 
-        for (reference_body, quantity, reference_component, step_path) in save_paths_and_bodies:
-            component_full_name = step_path.name
+        for (reference_body, quantity, reference_component, save_file_name) in save_paths_and_bodies:
+            component_full_name = str(save_file_name)
 
-            try_detect = lambda expression: bool(re.match(f"{expression}", component_full_name))
+            try_detect = lambda expression: bool(re.match(f"Верстак-Dim1000x600x50 {expression}", component_full_name))
 
-            # steel_sheet_8mm
-            if try_detect(r"nothing to find"):
-                pass
+            if try_detect(r"столешница"):
+                utils.info.log_line(f"detected DOC-unused step-file: {component_full_name}")
+                continue
+            # steel_sheet_6mm
+            elif try_detect(r".+-6мм.+"):
+                steel_sheet_6mm.append([component_full_name, 10])
+            # steel_sheet_4mm
+            elif try_detect(r"крепёжный-уголок"):
+                steel_sheet_4mm.append([component_full_name, 4])
             else:
-                utils.warning.log_line(f"detected DOC-unclassified step-file: {step_path}")
+                utils.warning.log_line(f"detected DOC-unclassified step-file: {save_file_name}")
                 undefined.append([component_full_name, quantity])
 
-            try:
-                utils.save_body_from_component_like_step(reference_component, reference_body, step_path)
-                utils.success.log_line(f"step file created: {step_path}")
-            except Exception as error:
-                utils.error.log_line(f"step file wasn't created: {error}")
+            step_file = save_folder / save_file_name.with_suffix('.step')
+            utils.save_body_from_component_like_step(reference_component, reference_body, step_file)
+            utils.success.log_line(f"STEP file created: {step_file}")
+            dxf_file = save_folder / save_file_name.with_suffix('.dxf')
+            utils.save_body_from_component_like_dxf(reference_component, reference_body, dxf_file)
+            utils.success.log_line(f"DXF file created: {dxf_file}")
 
         content = [
             "# Техническое задания на изготовление металлических деталей для «Верстак-Dim1000x600x50» методом ЧПУ лазерной резки",
             "",
-            "❗ **Геометрические параметры всех деталей в STEP-файлах учитывают технологические отступы:**",
+            "❗ **Геометрические параметры всех деталей в STEP/DXF-файлах учитывают технологические отступы:**",
             "Траектория реза задается относительно контура детали следующим образом:",
             "- для сквозных отверстий, пазов и иных внутренних элементов, рез выполняется по внутреннему контуру (материал удаляется изнутри контура);",
             "- для наружного контура детали (отрезка заготовки), рез выполняется по внешнему контуру (материал удаляется снаружи контура).",
             "",
+            "❗В случае если деталь изготавливается при помощи резки листового металла, документация содержит соответствующий DXF файл!",
+            "",
             "❗В случае, если фактические параметры металлических заготовок будут отличаться от заданных, прошу сообщить отдельно для внесения корректировок в проект изделия!",
+            "",
+            "## Лист стальной горячекатанный 6мм",
+            "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-6-st3sp-ps-5)",
+            "",
+            make_md_tabla(steel_sheet_6mm),
             "",
             "## Лист стальной горячекатанный 4мм",
             "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-4-st3sp-ps-5)",
