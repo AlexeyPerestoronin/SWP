@@ -1,8 +1,10 @@
 import re
+import shutil
 import invoke
 import pathlib
 
-from typing import List, Tuple
+from collections.abc import Callable
+from typing import List, Tuple, Optional, TypeAlias, Protocol
 from pyswx.api.swconst.enumerations import SWDocumentTypesE
 from tabulate import tabulate
 
@@ -10,71 +12,70 @@ import utils
 import check
 
 
-def make_md_tabla(data: List[Tuple[str, int]]):
-    sorted_data = sorted(data, key=lambda x: x[0])
-    return tabulate(sorted_data, headers=["Деталь-файл", "Количество (штук)"], tablefmt="pipe")
+class IDocumentCreator(Protocol):
+    """TODO: provide some comment"""
 
-
-@invoke.task(help={
-    "extended-content": "include additional section in ready documentation (default: True)",
-})
-def make_doc_for_workbench_1000_600(ctx, extended_content: bool = True):
-    """
-    Prepare MarkDown documentation:
-    ../DOC
-        README.md
-        file-1.step
+    def create(self, doc_file_path: pathlib.Path):
         ...
-        file-N.step
-    """
 
-    project_path = pathlib.Path(__file__).with_name('Верстак-Dim1000x600x50.SLDPRT')
-    check.project_naming(ctx, project_path)
-    root_model = utils.open_document(project_path, SWDocumentTypesE.SW_DOC_PART).root_model
 
-    unique_bodies_manager = utils.UniqueBodiesManager()
-    unique_bodies_manager.add_from_model(root_model)
+class CNCLaserCuttingDocCreator(IDocumentCreator):
+    """TODO: provide some comment"""
 
-    save_folder = project_path.with_name('DOC_for_workbench_1000x600')
-    save_paths_and_bodies = utils.prepare_saving_groups_2(unique_bodies_manager.unique_bodies)
+    class TableDataPreparator:
+        """TODO: provide some comment"""
 
-    execute = True
-    if execute:
-        save_folder.mkdir(parents=True, exist_ok=True)
-        for reference_component in save_folder.iterdir():
-            reference_component.unlink(missing_ok=True)
+        TableData: TypeAlias = List[Tuple[str, bool, bool, int]]
 
-        steel_sheet_6mm = []
-        steel_sheet_4mm = []
-        undefined = []
+        def __init__(self, saving_groups: utils.SavingGroups, save_folder: pathlib.Path, base_matcher: Callable[[str, str], bool]):
+            self.__marked_saving_groups = [['', saving_group] for saving_group in saving_groups]
+            self.__save_folder = save_folder
+            self.__base_matcher = base_matcher
+            # ---
+            self.__save_folder.mkdir(parents=True, exist_ok=True)
 
-        for (reference_body, quantity, reference_component, save_file_name) in save_paths_and_bodies:
-            component_full_name = str(save_file_name)
+        def prepare(self,
+                    step: bool,
+                    dxf: bool,
+                    match_expressions: List[str] = [],
+                    *,
+                    quantity_expression: Callable[[int], int] = lambda q: q,
+                    unused_only: bool = False) -> TableData:
+            table_data = []
+            for (mark, saving_group) in self.__marked_saving_groups:
+                (reference_body, quantity, reference_component, save_file_name) = saving_group
+                component_full_name = str(save_file_name)
+                if unused_only:
+                    if mark != '':
+                        table_data.append([component_full_name, step, dxf, quantity_expression(quantity)])
+                    else:
+                        continue
+                for match_expression in match_expressions:
+                    if self.__base_matcher(match_expression, component_full_name):
+                        if mark != '':
+                            raise Exception(f"'{component_full_name}' is already passed by '{mark}'-mark")
+                        if step:
+                            step_file = self.__save_folder / 'STEP' / save_file_name.with_suffix('.step')
+                            utils.save_body_from_component_like_step(reference_component, reference_body, step_file)
+                            utils.success.log_line(f"STEP file created: {step_file}")
+                        if dxf:
+                            dxf_file = self.__save_folder / 'DXF' / save_file_name.with_suffix('.dxf')
+                            utils.save_body_from_component_like_dxf(reference_component, reference_body, dxf_file)
+                            utils.success.log_line(f"DXF file created: {dxf_file}")
+                        mark = 'unused' if step is False and dxf is False else str(match_expression)
+                        table_data.append([component_full_name, step, dxf, quantity_expression(quantity)])
+                        break
+            return table_data
 
-            try_detect = lambda expression: bool(re.match(f"Верстак-Dim1000x600x50 {expression}", component_full_name))
+        def unused(self, match_expressions: List[str]):
+            self.prepare(False, False, match_expressions)
 
-            if try_detect(r"столешница"):
-                utils.info.log_line(f"detected DOC-unused step-file: {component_full_name}")
-                continue
-            # steel_sheet_6mm
-            elif try_detect(r".+-6мм.+"):
-                steel_sheet_6mm.append([component_full_name, 10])
-            # steel_sheet_4mm
-            elif try_detect(r"крепёжный-уголок"):
-                steel_sheet_4mm.append([component_full_name, 4])
-            else:
-                utils.warning.log_line(f"detected DOC-unclassified step-file: {save_file_name}")
-                undefined.append([component_full_name, quantity])
+        def unclassified(self) -> TableData:
+            return self.prepare(False, False, unused_only=True)
 
-            step_file = save_folder / save_file_name.with_suffix('.step')
-            utils.save_body_from_component_like_step(reference_component, reference_body, step_file)
-            utils.success.log_line(f"STEP file created: {step_file}")
-            dxf_file = save_folder / save_file_name.with_suffix('.dxf')
-            utils.save_body_from_component_like_dxf(reference_component, reference_body, dxf_file)
-            utils.success.log_line(f"DXF file created: {dxf_file}")
-
-        content = [
-            "# Техническое задания на изготовление металлических деталей для «Верстак-Dim1000x600x50» методом ЧПУ лазерной резки",
+    def __init__(self, project_name: str):
+        self.__content = [
+            f"# Техническое задания на изготовление металлических деталей для «{project_name}» методом ЧПУ лазерной резки",
             "",
             "❗ **Геометрические параметры всех деталей в STEP/DXF-файлах учитывают технологические отступы:**",
             "Траектория реза задается относительно контура детали следующим образом:",
@@ -85,27 +86,65 @@ def make_doc_for_workbench_1000_600(ctx, extended_content: bool = True):
             "",
             "❗В случае, если фактические параметры металлических заготовок будут отличаться от заданных, прошу сообщить отдельно для внесения корректировок в проект изделия!",
             "",
-            "## Лист стальной горячекатанный 6мм",
-            "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-6-st3sp-ps-5)",
-            "",
-            make_md_tabla(steel_sheet_6mm),
-            "",
-            "## Лист стальной горячекатанный 4мм",
-            "[Справочная ссылка для материала](https://купитьметалл.рф/product/list-gk-4-st3sp-ps-5)",
-            "",
-            make_md_tabla(steel_sheet_4mm),
         ]
 
-        if len(undefined) > 0:
-            content.extend([
-                "",
-                "## Не учтённые элементы",
-                make_md_tabla(undefined),
-            ])
+    def add_table(self, table_header: str, table_data: TableDataPreparator.TableData, material_link: Optional[str] = None) -> 'CNCLaserCuttingDocCreator':
+        try:
+            if len(table_data) > 0:
+                table_data = sorted(table_data, key=lambda x: x[0])
+                table_data = tabulate(table_data, headers=["Деталь-файл", "STEP", "DXF", "Количество (штук)"], tablefmt="pipe")
+                self.__content.extend([
+                    f"## {table_header}",
+                    f"[Справочная ссылка для материала]({material_link})\n" if material_link else "",
+                    f"{table_data}",
+                    "",
+                ])
+        except Exception as error:
+            raise RuntimeError(f"cannot add '{table_header}'-table in DOC: {error}")
+        return self
 
-        doc_file = save_folder / pathlib.Path('README.md')
-        with open(doc_file, "w", encoding="utf-8") as file:
-            file.write("\n".join(content))
+    def create(self, save_folder: pathlib.Path):
+        doc_file_path = save_folder / 'CNC_Laser_Metal_Cutting.md'
+        try:
+            with open(doc_file_path, "w", encoding="utf-8") as file:
+                file.write("\n".join(self.__content))
+        except Exception as error:
+            raise RuntimeError(f"cannot create DOC in {doc_file_path}: {error}")
+
+
+@invoke.task()
+def make_doc_for_workbench_1000_600(ctx):
+    """
+    Prepare MarkDown documentation:
+    ../DOC
+        README.md
+        file-1.step
+        ...
+        file-N.step
+    """
+    project_name = 'Верстак-Dim1000x600x50'
+    project_path = pathlib.Path(__file__).with_name(f'{project_name}.SLDPRT')
+    check.project_naming(ctx, project_path)
+    root_model = utils.open_document(project_path, SWDocumentTypesE.SW_DOC_PART).root_model
+
+    unique_bodies_manager = utils.UniqueBodiesManager()
+    unique_bodies_manager.add_from_model(root_model)
+
+    save_folder = project_path.with_name(f'{project_name}-DOC')
+    saving_groups = utils.prepare_saving_groups_2(unique_bodies_manager.unique_bodies)
+
+    execute = True
+    if execute:
+        shutil.rmtree(save_folder, ignore_errors=True)
+
+        td_preparator = CNCLaserCuttingDocCreator.TableDataPreparator(saving_groups, save_folder,
+                                                                      lambda expression, component_full_name: bool(re.match(f"{project_name} {expression}", component_full_name)))
+        td_preparator.unused([r"столешница"])
+        CNCLaserCuttingDocCreator(project_name) \
+            .add_table('Лист стальной горячекатанный 6мм', td_preparator.prepare(True, True, [r".+-6мм.+"], quantity_expression=lambda x :  10), 'https://купитьметалл.рф/product/list-gk-6-st3sp-ps-5') \
+            .add_table('Лист стальной горячекатанный 4мм', td_preparator.prepare(True, True, [r"крепёжный-уголок"], quantity_expression=lambda x :  16), 'https://купитьметалл.рф/product/list-gk-4-st3sp-ps-5') \
+            .add_table('Не учтённые элементы', td_preparator.unclassified()) \
+            .create(save_folder)
 
 
 collection = invoke.Collection()
