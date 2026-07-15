@@ -37,5 +37,6 @@ def create_metal_tech_task(ctx):
             .add_table('Не учтённые элементы', td_preparator.unclassified()) \
             .create(doc_save_folder)
 
+
 collection = invoke.Collection()
 collection.add_task(create_metal_tech_task, name="create-metal-tech-task")
