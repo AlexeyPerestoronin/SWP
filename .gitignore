@@ -19,6 +19,9 @@
 # GeeCode
 *.gx
 
+# DrawIO
+*.drawio.bkp
+
 # Personal
 note.md
 TODO.md
