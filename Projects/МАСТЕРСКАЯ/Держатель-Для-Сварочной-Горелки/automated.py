@@ -11,16 +11,13 @@ PROJECT_PATH = pathlib.Path(__file__).with_name(f'{PROJECT_NAME}-Сборка.SL
 DOC_FOLDER = PROJECT_PATH.with_name(f'{PROJECT_NAME}-DOC')
 
 
-@invoke.task()
+@utils.sw_task(doc_string=f"Clear folder with '{PROJECT_NAME}'-project documentation!")
 def clear_doc_folder(ctx):
-    """Clear folder with project documentation!"""
     shutil.rmtree(DOC_FOLDER, ignore_errors=True)
 
 
-@invoke.task()
+@utils.sw_task(doc_string=f"Prepare manufacturing documentation for the project '{PROJECT_NAME}'")
 def prepare_manufacturing_doc(ctx):
-    f"""Prepare manufacturing documentation for the project '{PROJECT_NAME}'"""
-
     unique_bodies_manager = utils.UniqueBodiesManager()
     unique_bodies_manager.add_from_project(PROJECT_PATH)
     saving_groups = utils.prepare_saving_groups_2(unique_bodies_manager.unique_bodies)
@@ -39,15 +36,13 @@ def prepare_manufacturing_doc(ctx):
             .create(manufacturing_doc_folder)
 
 
-@invoke.task()
+@utils.sw_task(doc_string=f"Prepare assembling documentation for the project '{PROJECT_NAME}'")
 def prepare_assembling_doc(ctx):
-    f"""Prepare manufacturing documentation for the project '{PROJECT_NAME}'"""
     pass
 
 
-@invoke.task()
+@utils.sw_task(doc_string=f"Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive")
 def convert_doc_to_zip(ctx):
-    f"""Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive"""
     pass
 
 
