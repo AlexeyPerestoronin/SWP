@@ -50,23 +50,19 @@ def prepare_assembling_doc(ctx):
         manufacturing_doc_folder = DOC_FOLDER / 'Assembling'
         shutil.rmtree(manufacturing_doc_folder, ignore_errors=True)
 
-        td_preparator = utils.doc_creator.CNCLaserCuttingDocCreator.TableDataPreparator(
-            saving_groups, manufacturing_doc_folder, lambda expression, component_full_name: bool(re.match(f"{expression}", component_full_name)))
-        td_preparator.unused([f"{PROJECT_NAME} (основание|держатель) .+"])
-        utils.doc_creator.CNCLaserCuttingDocCreator(PROJECT_NAME) \
-            .add_4mm_steel_sheet_table(td_preparator.prepare(True, False, [f"({PROJECT_NAME} магнит|hex nut .+|hex bolt .+)"], quantity_expression=lambda x :  x * 2)) \
-            .add_unclassified_table(td_preparator.unclassified()) \
+        td_preparator = utils.doc_creator.AssemblyDocCreator.TableDataPreparator(saving_groups, manufacturing_doc_folder,
+                                                                                 lambda expression, component_full_name: bool(re.match(f"{expression}", component_full_name)))
+        utils.doc_creator.AssemblyDocCreator(PROJECT_NAME) \
+            .add_table("Магниты", td_preparator.prepare([f"({PROJECT_NAME} магнит)"], quantity_expression=lambda x :  x * 2)) \
+            .add_table("Болты", td_preparator.prepare([f"(hex nut .+)"], quantity_expression=lambda x :  x * 2)) \
+            .add_table("Гайки", td_preparator.prepare([f"(hex bolt .+)"], quantity_expression=lambda x :  x * 2)) \
             .create(manufacturing_doc_folder)
 
 
 @utils.sw_task(doc_string=f"Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive")
 def convert_doc_to_zip(ctx):
     DOC_FOLDER.with_suffix('.zip').unlink(missing_ok=True)
-    shutil.make_archive(
-        base_name=DOC_FOLDER,
-        root_dir=DOC_FOLDER,
-        format='zip'
-    )
+    shutil.make_archive(base_name=DOC_FOLDER, root_dir=DOC_FOLDER, format='zip')
 
 
 @utils.sw_task(doc_string=f"Make complex documentation for '{PROJECT_NAME}'",
