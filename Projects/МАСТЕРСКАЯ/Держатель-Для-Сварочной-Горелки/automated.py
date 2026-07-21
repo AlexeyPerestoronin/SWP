@@ -61,6 +61,7 @@ def prepare_assembling_doc(ctx):
 
 @utils.sw_task(doc_string=f"Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive")
 def convert_doc_to_zip(ctx):
+    DOC_FOLDER.with_suffix('.zip').unlink(missing_ok=True)
     shutil.make_archive(
         base_name=DOC_FOLDER,
         root_dir=DOC_FOLDER,
