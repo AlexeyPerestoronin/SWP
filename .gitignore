@@ -12,6 +12,7 @@
 *.step
 *.stl
 *.dxf
+*-DOC
 
 # Video
 *.avi
