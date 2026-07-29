@@ -16,7 +16,7 @@ def clear_doc_folder(ctx):
     shutil.rmtree(DOC_FOLDER, ignore_errors=True)
 
 
-@utils.sw_task(doc_string=f"Prepare solid-bodies-saving-groups in '{PROJECT_NAME}'-project")
+@utils.sw_task(doc_string=f"Prepare solid-bodies-saving-groups for '{PROJECT_NAME}'-project")
 def parse_saving_groups(ctx):
     if not hasattr(ctx, 'saving_groups'):
         unique_bodies_manager = utils.UniqueBodiesManager()
@@ -45,16 +45,19 @@ def prepare_assembling_doc(ctx):
     saving_groups = getattr(ctx, 'saving_groups')
     execute = True
     if execute:
-        manufacturing_doc_folder = DOC_FOLDER / 'Assembling'
-        shutil.rmtree(manufacturing_doc_folder, ignore_errors=True)
+        assembling_doc_folder = DOC_FOLDER / 'Assembling'
+        shutil.rmtree(assembling_doc_folder, ignore_errors=True)
 
-        td_preparator = utils.doc_creator.AssemblyDocCreator.TableDataPreparator(saving_groups, manufacturing_doc_folder,
-                                                                                 lambda expression, component_full_name: bool(re.match(f"{expression}", component_full_name)))
+        special_elements_table = utils.doc_creator.SpecialElementsAssemblyTable(saving_groups)
+        special_elements_table.prepare_data([f"{PROJECT_NAME} магнит"], quantity_evaluator=lambda x: x * 2, step=True, save_folder_opt=assembling_doc_folder)
+
+        iso_elements_table = utils.doc_creator.ISOToolboxAssemblyTable(saving_groups)
+        iso_elements_table.prepare_data()
+
         utils.doc_creator.AssemblyDocCreator(PROJECT_NAME) \
-            .add_table("Магниты", td_preparator.prepare([f"({PROJECT_NAME} магнит)"], quantity_expression=lambda x :  x * 2)) \
-            .add_table("Болты", td_preparator.prepare([f"(hex nut .+)"], quantity_expression=lambda x :  x * 2)) \
-            .add_table("Гайки", td_preparator.prepare([f"(hex bolt .+)"], quantity_expression=lambda x :  x * 2)) \
-            .create(manufacturing_doc_folder)
+            .add_table("Магниты", special_elements_table) \
+            .add_table("ISO-Крепёж", iso_elements_table) \
+            .create(assembling_doc_folder)
 
 
 @utils.sw_task(doc_string=f"Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive")
