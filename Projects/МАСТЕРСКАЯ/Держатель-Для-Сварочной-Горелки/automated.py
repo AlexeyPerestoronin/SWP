@@ -49,7 +49,11 @@ def prepare_assembling_doc(ctx):
         shutil.rmtree(assembling_doc_folder, ignore_errors=True)
 
         special_elements_table = utils.doc_creator.SpecialElementsAssemblyTable(saving_groups)
-        special_elements_table.prepare_data([f"{PROJECT_NAME} магнит"], quantity_evaluator=lambda x: x * 2, step=True, save_folder_opt=assembling_doc_folder)
+        special_elements_table.prepare_data([f"{PROJECT_NAME} магнит"],
+                                            quantity_evaluator=lambda x: x * 2,
+                                            step=True,
+                                            save_folder_opt=assembling_doc_folder,
+                                            buy_link='https://ozon.ru/t/7GG68ot')
 
         iso_elements_table = utils.doc_creator.ISOToolboxAssemblyTable(saving_groups)
         iso_elements_table.prepare_data()
