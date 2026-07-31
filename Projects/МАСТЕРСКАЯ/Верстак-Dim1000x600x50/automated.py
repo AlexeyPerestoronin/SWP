@@ -9,7 +9,7 @@ import utils.doc_creator
 PROJECT_NAME = 'Верстак-Dim1000x600x50'
 PROJECT_PATH = pathlib.Path(__file__).with_name(f'{PROJECT_NAME}.SLDPRT')
 DOC_FOLDER = PROJECT_PATH.with_name(f'{PROJECT_NAME}-DOC')
-    
+
 
 @utils.sw_task(doc_string=f"Clear folder with '{PROJECT_NAME}'-project documentation")
 def clear_doc_folder(ctx):
@@ -36,7 +36,7 @@ def prepare_manufacturing_doc(ctx):
         td_preparator = utils.doc_creator.CNCLaserCuttingDocCreator.TableDataPreparator(
             saving_groups, manufacturing_doc_folder, lambda expression, component_full_name: bool(re.match(f"{PROJECT_NAME} {expression}", component_full_name)))
 
-            # .add_6mm_steel_sheet_table(td_preparator.prepare([f".+-6мм.+"], step=True, dxf=True)) \
+        # .add_6mm_steel_sheet_table(td_preparator.prepare([f".+-6мм.+"], step=True, dxf=True)) \
         utils.doc_creator.CNCLaserCuttingDocCreator(PROJECT_NAME) \
             .add_4mm_steel_sheet_table(td_preparator.prepare([f"крепёжный-уголок"], step=True, dxf=True, quantity_expression=lambda x: 16)) \
             .create(manufacturing_doc_folder)
@@ -48,8 +48,7 @@ def convert_doc_to_zip(ctx):
     shutil.make_archive(base_name=DOC_FOLDER, root_dir=DOC_FOLDER, format='zip')
 
 
-@utils.sw_task(doc_string=f"Make complex documentation for '{PROJECT_NAME}'",
-               pre=[clear_doc_folder, parse_saving_groups, prepare_manufacturing_doc, convert_doc_to_zip])
+@utils.sw_task(doc_string=f"Make complex documentation for '{PROJECT_NAME}'", pre=[clear_doc_folder, parse_saving_groups, prepare_manufacturing_doc, convert_doc_to_zip])
 def make_doc(ctx):
     saving_groups = getattr(ctx, 'saving_groups')
     for saving_group in saving_groups:
@@ -63,5 +62,3 @@ collection.add_task(parse_saving_groups, name="parse-saving-groups")
 collection.add_task(prepare_manufacturing_doc, name="prepare-manufacturing-doc")
 collection.add_task(convert_doc_to_zip, name="convert-doc-to-zip")
 collection.add_task(make_doc, name="make-doc")
-
-
