@@ -9,7 +9,7 @@ PROJECT_NAME = 'Запор-Для-Ворот'
 CONFIGURATION_NAME = '140мм'
 PROJECT_PATH = pathlib.Path(__file__).with_name(f'{PROJECT_NAME}.SLDASM')
 DOC_FOLDER = PROJECT_PATH.with_name(f'{PROJECT_NAME} ({CONFIGURATION_NAME}) DOC')
-QUANTITY_EVALUATOR=lambda x: x * 10
+QUANTITY_EVALUATOR = lambda x: x * 10
 
 
 @utils.sw_task(doc_string=f"Clear folder with '{PROJECT_NAME}'-project documentation")
@@ -34,11 +34,11 @@ def prepare_manufacturing_doc(ctx):
         manufacturing_doc_folder = DOC_FOLDER / 'Manufacturing'
         shutil.rmtree(manufacturing_doc_folder, ignore_errors=True)
 
-        steel_8vv = utils.doc_creator.LaserCuttingManufacturingElementsTable(saving_groups)
-        steel_8vv.prepare_data([f"{PROJECT_NAME} (улитка|ручка|скоба-\w+)"], step=True, dxf=True, save_folder_opt=manufacturing_doc_folder, quantity_evaluator=lambda x: x * 10)
+        steel_8mm = utils.doc_creator.LaserCuttingManufacturingElementsTable(saving_groups)
+        steel_8mm.prepare_data([f"{PROJECT_NAME} (улитка|ручка|скоба-\w+)"], step=True, dxf=True, save_folder_opt=manufacturing_doc_folder, quantity_evaluator=QUANTITY_EVALUATOR)
 
         utils.doc_creator.CNCLaserCuttingDocCreator(PROJECT_NAME) \
-            .add_8mm_steel_sheet_table(steel_8vv) \
+            .add_8mm_steel_sheet_table(steel_8mm) \
             .create(manufacturing_doc_folder)
 
 
