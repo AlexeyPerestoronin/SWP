@@ -2,7 +2,6 @@ import re
 import shutil
 import invoke
 import pathlib
-import datetime
 
 from pyswx.api.sldworks.interfaces import IComponent2
 
@@ -10,8 +9,6 @@ import utils
 import utils.doc_creator
 
 PROJECT_NAME = 'Мастерская-V4'
-CONFIGURATION_NAME = None
-QUANTITY_EVALUATOR = lambda x: x
 PROJECT_PATH = pathlib.Path(__file__).with_name(f'{PROJECT_NAME}.SLDASM')
 DOC_FOLDER = PROJECT_PATH.parent / 'DOC' / 'Инженерная-Стенка (левая сторона)'
 
@@ -40,7 +37,7 @@ def parse_saving_groups_for_steel_doc():
             return is_pass
 
     unique_bodies_manager = utils.UniqueBodiesManager()
-    unique_bodies_manager.add_from_project(PROJECT_PATH, configuration=CONFIGURATION_NAME, component_filter=PassOnlyLeftSideSteelComponents())
+    unique_bodies_manager.add_from_project(PROJECT_PATH, component_filter=PassOnlyLeftSideSteelComponents())
     return utils.prepare_saving_groups(unique_bodies_manager.unique_bodies)
 
 
@@ -112,7 +109,7 @@ def parse_saving_groups_for_wood_doc():
             return is_pass
 
     unique_bodies_manager = utils.UniqueBodiesManager()
-    unique_bodies_manager.add_from_project(PROJECT_PATH, configuration=CONFIGURATION_NAME, component_filter=PassOnlyLeftSideWoodComponents())
+    unique_bodies_manager.add_from_project(PROJECT_PATH, component_filter=PassOnlyLeftSideWoodComponents())
     return utils.prepare_saving_groups(unique_bodies_manager.unique_bodies)
 
 
@@ -150,9 +147,10 @@ def prepare_wood_manufacturing_doc(ctx):
     utils.prepare_archive(root_dir=wood_manufacturing_doc_folder, archive_dir=DOC_FOLDER.parent, archive_name=f"ТЗ на производство деревянных деталей для инженерной стенки с левой стороны", archive_type='zip', add_date=True)
 
 
-@utils.sw_task(doc_string=f"Make full documentation for '{PROJECT_NAME}'", pre=[prepare_steel_manufacturing_doc, prepare_wood_manufacturing_doc])
+@utils.sw_task(doc_string=f"Make full documentation for '{PROJECT_NAME}'")
 def prepare_full_doc(ctx):
-    pass
+    prepare_steel_manufacturing_doc(ctx)
+    prepare_wood_manufacturing_doc(ctx)
 
 
 collection = invoke.Collection()
