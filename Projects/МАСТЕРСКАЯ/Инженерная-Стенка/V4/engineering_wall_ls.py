@@ -12,6 +12,7 @@ PROJECT_NAME = 'Мастерская-V4'
 PROJECT_DIR = pathlib.Path(__file__)
 DOC_FOLDER = PROJECT_DIR.parent / 'DOC' / 'Инженерная-Стенка (левая сторона)'
 
+
 class PassOnlyLeftSideSteelComponents(utils.AssemblyComponentsFilter):
 
     def __call__(self, component: IComponent2, level: int) -> bool:
