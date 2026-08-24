@@ -8,6 +8,7 @@ import projects
 
 from pyswx.api.sldworks.interfaces import IComponent2
 
+
 class PassOnlyDockingBracketComponentsFromLeftSide(utils.AssemblyComponentsFilter):
 
     def __call__(self, component: IComponent2, level: int) -> bool:
@@ -26,6 +27,7 @@ class PassOnlyDockingBracketComponentsFromLeftSide(utils.AssemblyComponentsFilte
         else:
             utils.logger.warning.log_line(f"{level}-level assembly component-'{component_name} ({configuration_name})' NOT passed")
         return is_pass
+
 
 @utils.sw_task(doc_string=f"Prepare steel-manufacturing documentation for the project 'Скоба-Стыковочная'")
 def prepare_docking_bracket_doc(ctx):
@@ -49,6 +51,7 @@ def prepare_docking_bracket_doc(ctx):
                                  archive_type='zip',
                                  add_date=True)
 
+
 @utils.sw_task(doc_string=f"Prepare steel-manufacturing documentation for the project 'Фрезерная-Направляющая'")
 def prepare_milling_guide_doc(ctx):
     project_dir = pathlib.Path(__file__)
@@ -66,10 +69,10 @@ def prepare_milling_guide_doc(ctx):
         .create(doc_folder)
 
 
-
 collection = invoke.Collection()
 collection.add_task(prepare_docking_bracket_doc)
 collection.add_task(prepare_milling_guide_doc)
 
 # add sub tasks
 projects.load_project_task(collection, pathlib.Path(__file__).parent / 'left_side.py')
+projects.load_project_task(collection, pathlib.Path(__file__).parent / 'electrical_panel_holder.py')

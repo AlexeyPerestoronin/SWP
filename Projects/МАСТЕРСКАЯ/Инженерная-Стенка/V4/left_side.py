@@ -6,7 +6,6 @@ import pathlib
 from pyswx.api.sldworks.interfaces import IComponent2
 
 import utils
-import utils.doc_creator
 
 PROJECT_NAME = 'Мастерская-V4'
 PROJECT_DIR = pathlib.Path(__file__)

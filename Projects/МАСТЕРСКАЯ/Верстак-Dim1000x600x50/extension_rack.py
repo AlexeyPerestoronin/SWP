@@ -4,7 +4,6 @@ import invoke
 import pathlib
 
 import utils
-import utils.doc_creator
 
 PROJECT_NAME = 'Верстак-Dim1000x600x50'
 CONFIGURATION_NAME = None
