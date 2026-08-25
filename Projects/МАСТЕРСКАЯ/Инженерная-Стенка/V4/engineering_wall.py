@@ -69,9 +69,38 @@ def prepare_milling_guide_doc(ctx):
         .create(doc_folder)
 
 
+@utils.sw_task(doc_string=f"Prepare steel-manufacturing documentation for the project 'Полочка-Металлическая'")
+def prepare_metal_shelf_doc(ctx):
+    project_name = 'Полочка-Металлическая'
+    project_dir = pathlib.Path(__file__)
+    doc_folder = project_dir.parent / 'DOC' / project_name
+
+    saving_groups = utils.prepare_saving_groups_for_project(project_dir.with_name(f'{project_name}.SLDPRT'))
+
+    shutil.rmtree(doc_folder, ignore_errors=True)
+
+    profile_angle_25_25_4mm = utils.doc_creator.StandardElementsTable(saving_groups)
+    profile_angle_25_25_4mm.prepare_data([f"{project_name} рамка .+"], step=True, dxf=False, save_folder_opt=doc_folder)
+
+    steel_sheet_4mm = utils.doc_creator.StandardElementsTable(saving_groups)
+    steel_sheet_4mm.prepare_data([f"{project_name} ушко"], step=True, dxf=True, save_folder_opt=doc_folder)
+
+    utils.doc_creator.CNCMetalLaserCuttingDocCreator(project_name) \
+        .add_25_25_4mm_steel_profile_angle_table(profile_angle_25_25_4mm) \
+        .add_4mm_steel_sheet_table(steel_sheet_4mm) \
+        .create(doc_folder)
+
+    assert utils.prepare_archive(root_dir=doc_folder,
+                                 archive_dir=doc_folder.parent,
+                                 archive_name=f"ТЗ на производство каркаса для металлических полочек (ТОЛЬКО ПРОВЕРИТЬ)",
+                                 archive_type='zip',
+                                 add_date=True)
+
+
 collection = invoke.Collection()
 collection.add_task(prepare_docking_bracket_doc)
 collection.add_task(prepare_milling_guide_doc)
+collection.add_task(prepare_metal_shelf_doc)
 
 # add sub tasks
 projects.load_project_task(collection, pathlib.Path(__file__).parent / 'left_side.py')
