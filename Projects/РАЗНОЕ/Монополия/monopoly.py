@@ -1,3 +1,4 @@
+import re
 import shutil
 import invoke
 import pathlib
@@ -11,16 +12,17 @@ DOC_FOLDER = PROJECT_DIR.parent / 'DOC' / PROJECT_NAME
 
 @utils.sw_task(doc_string=f"Prepare wood-manufacturing documentation for the project '{PROJECT_NAME}'")
 def prepare_wood_doc(ctx):
+    wood_bodies = r'(путь-внешний|путь-внутренний|круг|подложка)'
     unique_bodies_manager = utils.UniqueBodiesManager()
     unique_bodies_manager.add_from_project(PROJECT_DIR.with_name("Карта.SLDPRT"))
-    unique_bodies = [unique_bodies for unique_bodies in unique_bodies_manager.unique_bodies if unique_bodies[0][0].name in ('путь-внешний', 'путь-внутренний', 'круг')]
+    unique_bodies = [unique_bodies for unique_bodies in unique_bodies_manager.unique_bodies if re.match(wood_bodies, unique_bodies[0][0].name)]
     saving_groups = utils.prepare_saving_groups(unique_bodies)
 
     doc_folder = DOC_FOLDER / 'Manufacturing' / 'Wood'
     shutil.rmtree(doc_folder, ignore_errors=True)
 
     polywood = utils.doc_creator.StandardElementsTable(saving_groups)
-    polywood.prepare_data([r"Карта (путь-внешний|путь-внутренний|круг)"], step=True, dxf=False, save_folder_opt=doc_folder)
+    polywood.prepare_data([f"Карта {wood_bodies}"], step=True, dxf=False, save_folder_opt=doc_folder)
     polywood_material_info = utils.doc_creator.MaterialInfoTable()
     polywood_material_info.prepare_data([
         ["материал", "фанера"],
