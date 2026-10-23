@@ -5,12 +5,12 @@ import pathlib
 import utils
 import utils.doc_creator
 
-PROJECT_NAME = 'Запор-Для-Ворот'
+PROJECT_NAME = 'Запор-Для-Ворот-V2'
 CONFIGURATION_NAME = '140мм'
-PROJECT_DIR = pathlib.Path(__file__)
-PROJECT_PATH = PROJECT_DIR.parent / f'{PROJECT_NAME}.SLDASM'
-DOC_FOLDER = PROJECT_DIR.parent / 'DOC' / PROJECT_NAME
-QUANTITY = lambda x: x * 10
+PROJECT_DIR = pathlib.Path(__file__).parent
+PROJECT_PATH = PROJECT_DIR / 'V2' / f'{PROJECT_NAME}.SLDASM'
+DOC_FOLDER = PROJECT_DIR / 'DOC' / PROJECT_NAME
+QUANTITY = lambda x: x * 30
 
 
 @utils.sw_task(doc_string=f"Clear folder with '{PROJECT_NAME}'-project documentation")
@@ -86,33 +86,20 @@ def prepare_assembling_doc(ctx):
         .create(assembling_doc_folder)
 
 
-@utils.sw_task(doc_string=f"Wrapping documentation for the project '{PROJECT_NAME}' to ZIP archive")
-def convert_doc_to_zip(ctx):
-    DOC_FOLDER.with_suffix('.zip').unlink(missing_ok=True)
-    shutil.make_archive(base_name=DOC_FOLDER, root_dir=DOC_FOLDER, format='zip')
-
-
 @utils.sw_task(doc_string=f"Make complex documentation for '{PROJECT_NAME}'",
-               pre=[clear_doc_folder, parse_saving_groups, prepare_manufacturing_doc, prepare_assembling_doc, convert_doc_to_zip])
+               pre=[clear_doc_folder, parse_saving_groups, prepare_manufacturing_doc, prepare_assembling_doc])
 def make_doc(ctx):
     saving_groups = getattr(ctx, 'saving_groups')
-    for saving_group in saving_groups:
-        if saving_group.mark is None:
-            save_file_name = str(saving_group.save_file_name)
-            unused_elements = [
-                f"{PROJECT_NAME} фурнитура фур-ПП-подшипник",
-                f"{PROJECT_NAME} фурнитура фур-ПП-п-часть",
-            ]
-            if save_file_name in unused_elements:
-                utils.logger.info.log_line(f"detected unused elements '{save_file_name}'")
-            else:
-                utils.logger.error.log_line(f"detected unclassified elements '{save_file_name}'")
+    assert utils.scan_unused_saving_group(
+        saving_groups,
+        skip_elements=[
+            f"{PROJECT_NAME} фурнитура фур-ПП-подшипник",
+            f"{PROJECT_NAME} фурнитура фур-ПП-п-часть",
+        ])
 
 
 collection = invoke.Collection()
-collection.add_task(clear_doc_folder, name="clear-doc-folder")
 collection.add_task(parse_saving_groups, name="parse-saving-groups")
 collection.add_task(prepare_manufacturing_doc, name="prepare-manufacturing-doc")
 collection.add_task(prepare_assembling_doc, name="prepare-assembling-doc")
-collection.add_task(convert_doc_to_zip, name="convert-doc-to-zip")
 collection.add_task(make_doc, name="make-doc")

@@ -29,13 +29,14 @@ def prepare_manufacturing_doc(ctx):
     shutil.rmtree(manufacturing_doc_folder, ignore_errors=True)
 
     pla = utils.doc_creator.StandardElementsTable(saving_groups)
-    pla.prepare_data([f"{PROJECT_NAME} конструкционный-элемент .+"], step=True, dxf=False, save_folder_opt=manufacturing_doc_folder, quantity_evaluator=QUANTITY)
+    pla.prepare_data([f"{PROJECT_NAME} кронштейн-настенный .+"], step=True, dxf=False, save_folder_opt=manufacturing_doc_folder, quantity_evaluator=QUANTITY)
+    pla.prepare_data([f"{PROJECT_NAME} этажерка"], step=True, dxf=False, save_folder_opt=manufacturing_doc_folder, quantity_evaluator=QUANTITY)
 
     utils.doc_creator.CNC3DPrintingDocCreator(f"Монополия") \
         .add_PLA(pla) \
         .create(manufacturing_doc_folder)
 
-    assert utils.scan_unused_saving_group(saving_groups, [f"{PROJECT_NAME} брусок"])
+    assert utils.scan_unused_saving_group(saving_groups, [f"{PROJECT_NAME} брусок-\d"])
 
 collection = invoke.Collection()
 collection.add_task(parse_saving_groups, name="parse-saving-groups")
